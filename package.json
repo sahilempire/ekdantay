@@ -1,0 +1,13 @@
+{
+  "name": "ekdantay-dental-clinic",
+  "version": "1.0.0",
+  "description": "Ekdantay Dental Clinic Website",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Static site - no build needed'",
+    "start": "echo 'Static site'"
+  },
+  "keywords": ["dental", "clinic", "healthcare"],
+  "author": "Ekdantay Dental Clinic",
+  "license": "MIT"
+}
