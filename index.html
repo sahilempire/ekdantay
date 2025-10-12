@@ -58,7 +58,7 @@
             <div class="col-md-6 col-sm-12 ftco-animate" data-scrollax=" properties: { translateY: '70%' }">
               <h1 class="mb-4" data-scrollax="properties: { translateY: '30%', opacity: 1.6 }">Modern Dentistry in a Calm and Relaxed Environment</h1>
               <p class="mb-4" data-scrollax="properties: { translateY: '30%', opacity: 1.6 }">Experience world-class dental care with our expert team of dentists using the latest technology and techniques.</p>
-              <p data-scrollax="properties: { translateY: '30%', opacity: 1.6 }"><a href="#" class="btn btn-primary px-4 py-3">Make an Appointment</a></p>
+              <p data-scrollax="properties: { translateY: '30%', opacity: 1.6 }"><a href="#" class="btn btn-primary px-4 py-3" data-toggle="modal" data-target="#modalRequest">Make an Appointment</a></p>
             </div>
           </div>
         </div>
@@ -71,7 +71,7 @@
             <div class="col-md-6 col-sm-12 ftco-animate" data-scrollax=" properties: { translateY: '70%' }">
               <h1 class="mb-4" data-scrollax="properties: { translateY: '30%', opacity: 1.6 }">Achieve Your Desired Perfect Smile</h1>
               <p class="mb-4">Transform your smile with our comprehensive dental treatments and personalized care approach.</p>
-              <p><a href="#" class="btn btn-primary px-4 py-3">Make an Appointment</a></p>
+              <p><a href="#" class="btn btn-primary px-4 py-3" data-toggle="modal" data-target="#modalRequest">Make an Appointment</a></p>
             </div>
           </div>
         </div>
@@ -776,52 +776,184 @@
   <!-- loader -->
   <div id="ftco-loader" class="show fullscreen"><svg class="circular" width="48px" height="48px"><circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/><circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/></svg></div>
 
-  <!-- Modal -->
+  <!-- Enhanced Modal -->
   <div class="modal fade" id="modalRequest" tabindex="-1" role="dialog" aria-labelledby="modalRequestLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalRequestLabel">Make an Appointment</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="modalRequestLabel">
+            <i class="icon-calendar mr-2"></i>Book Your Appointment
+          </h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="modal-body">
-          <form action="#">
-            <div class="form-group">
-              <!-- <label for="appointment_name" class="text-black">Full Name</label> -->
-              <input type="text" class="form-control" id="appointment_name" placeholder="Full Name">
-            </div>
-            <div class="form-group">
-              <!-- <label for="appointment_email" class="text-black">Email</label> -->
-              <input type="text" class="form-control" id="appointment_email" placeholder="Email">
-            </div>
-            <div class="row">
-              <div class="col-md-6">
+        <div class="modal-body p-4">
+          <div class="row">
+            <div class="col-md-8">
+              <form id="appointmentForm" action="#" method="POST">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="appointment_name" class="text-dark font-weight-bold">Full Name *</label>
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text"><i class="icon-user"></i></span>
+                        </div>
+                        <input type="text" class="form-control" id="appointment_name" name="name" placeholder="Enter your full name" required>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="appointment_email" class="text-dark font-weight-bold">Email Address *</label>
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text"><i class="icon-envelope"></i></span>
+                        </div>
+                        <input type="email" class="form-control" id="appointment_email" name="email" placeholder="your.email@example.com" required>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="appointment_phone" class="text-dark font-weight-bold">Phone Number *</label>
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text"><i class="icon-phone"></i></span>
+                        </div>
+                        <input type="tel" class="form-control" id="appointment_phone" name="phone" placeholder="+91 98765 43210" required>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="appointment_service" class="text-dark font-weight-bold">Service Required</label>
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text"><i class="icon-medical-cross"></i></span>
+                        </div>
+                        <select class="form-control" id="appointment_service" name="service">
+                          <option value="">Select a service</option>
+                          <option value="general-checkup">General Checkup</option>
+                          <option value="teeth-whitening">Teeth Whitening</option>
+                          <option value="teeth-cleaning">Teeth Cleaning</option>
+                          <option value="orthodontics">Orthodontics</option>
+                          <option value="dental-implant">Dental Implant</option>
+                          <option value="emergency">Emergency Care</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="appointment_date" class="text-dark font-weight-bold">Preferred Date *</label>
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text"><i class="icon-calendar"></i></span>
+                        </div>
+                        <input type="date" class="form-control" id="appointment_date" name="date" required>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label for="appointment_time" class="text-dark font-weight-bold">Preferred Time *</label>
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text"><i class="icon-clock-o"></i></span>
+                        </div>
+                        <select class="form-control" id="appointment_time" name="time" required>
+                          <option value="">Select time</option>
+                          <option value="09:00">09:00 AM</option>
+                          <option value="09:30">09:30 AM</option>
+                          <option value="10:00">10:00 AM</option>
+                          <option value="10:30">10:30 AM</option>
+                          <option value="11:00">11:00 AM</option>
+                          <option value="11:30">11:30 AM</option>
+                          <option value="12:00">12:00 PM</option>
+                          <option value="12:30">12:30 PM</option>
+                          <option value="14:00">02:00 PM</option>
+                          <option value="14:30">02:30 PM</option>
+                          <option value="15:00">03:00 PM</option>
+                          <option value="15:30">03:30 PM</option>
+                          <option value="16:00">04:00 PM</option>
+                          <option value="16:30">04:30 PM</option>
+                          <option value="17:00">05:00 PM</option>
+                          <option value="17:30">05:30 PM</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="form-group">
-                  <!-- <label for="appointment_date" class="text-black">Date</label> -->
-                  <input type="text" class="form-control appointment_date" placeholder="Date">
-                </div>    
-              </div>
-              <div class="col-md-6">
-                <div class="form-group">
-                  <!-- <label for="appointment_time" class="text-black">Time</label> -->
-                  <input type="text" class="form-control appointment_time" placeholder="Time">
+                  <label for="appointment_message" class="text-dark font-weight-bold">Additional Message</label>
+                  <textarea class="form-control" id="appointment_message" name="message" rows="4" placeholder="Please describe your dental concern or any special requirements..."></textarea>
+                </div>
+
+                <div class="form-group mb-0">
+                  <div class="alert alert-info">
+                    <i class="icon-info-circle mr-2"></i>
+                    <strong>Note:</strong> We'll confirm your appointment within 24 hours. For emergencies, please call us directly at <strong>+91 90578 15285</strong>.
+                  </div>
+                </div>
+
+                <div class="form-group text-center">
+                  <button type="submit" class="btn btn-primary btn-lg px-5">
+                    <i class="icon-calendar mr-2"></i>Book Appointment
+                  </button>
+                </div>
+              </form>
+            </div>
+            
+            <div class="col-md-4">
+              <div class="bg-light p-3 rounded">
+                <h6 class="text-primary font-weight-bold mb-3">
+                  <i class="icon-clock-o mr-2"></i>Clinic Hours
+                </h6>
+                <div class="mb-2">
+                  <small class="text-muted">Monday - Friday</small><br>
+                  <strong>9:00 AM - 6:00 PM</strong>
+                </div>
+                <div class="mb-2">
+                  <small class="text-muted">Saturday</small><br>
+                  <strong>9:00 AM - 3:00 PM</strong>
+                </div>
+                <div class="mb-3">
+                  <small class="text-muted">Sunday</small><br>
+                  <strong>Closed</strong>
+                </div>
+                
+                <hr>
+                
+                <h6 class="text-primary font-weight-bold mb-3">
+                  <i class="icon-phone mr-2"></i>Contact Info
+                </h6>
+                <div class="mb-2">
+                  <strong>Phone:</strong><br>
+                  <a href="tel:+919057815285" class="text-primary">+91 90578 15285</a>
+                </div>
+                <div class="mb-2">
+                  <strong>Email:</strong><br>
+                  <a href="mailto:info@ekdantay.com" class="text-primary">info@ekdantay.com</a>
+                </div>
+                <div class="mb-2">
+                  <strong>Address:</strong><br>
+                  <small>8, Janta Dharmshala, near Mahila Thana,<br>
+                  Housing Board, Sawai Madhopur,<br>
+                  Alanpur Rural, Rajasthan 322001</small>
                 </div>
               </div>
             </div>
-            
-
-            <div class="form-group">
-              <!-- <label for="appointment_message" class="text-black">Message</label> -->
-              <textarea name="" id="appointment_message" class="form-control" cols="30" rows="10" placeholder="Message"></textarea>
-            </div>
-            <div class="form-group">
-              <input type="submit" value="Make an Appointment" class="btn btn-primary">
-            </div>
-          </form>
+          </div>
         </div>
-        
       </div>
     </div>
   </div>
@@ -844,6 +976,128 @@
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false"></script>
   <script src="js/google-map.js"></script>
   <script src="js/main.js"></script>
+  
+  <!-- Appointment Form Functionality -->
+  <script>
+    $(document).ready(function() {
+      // Set minimum date to today
+      const today = new Date().toISOString().split('T')[0];
+      $('#appointment_date').attr('min', today);
+      
+      // Form submission handler
+      $('#appointmentForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const formData = {
+          name: $('#appointment_name').val(),
+          email: $('#appointment_email').val(),
+          phone: $('#appointment_phone').val(),
+          service: $('#appointment_service').val(),
+          date: $('#appointment_date').val(),
+          time: $('#appointment_time').val(),
+          message: $('#appointment_message').val()
+        };
+        
+        // Basic validation
+        if (!formData.name || !formData.email || !formData.phone || !formData.date || !formData.time) {
+          alert('Please fill in all required fields.');
+          return;
+        }
+        
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          alert('Please enter a valid email address.');
+          return;
+        }
+        
+        // Phone validation (basic)
+        const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+        if (!phoneRegex.test(formData.phone)) {
+          alert('Please enter a valid phone number.');
+          return;
+        }
+        
+        // Show loading state
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        submitBtn.html('<i class="icon-spinner icon-spin mr-2"></i>Booking...').prop('disabled', true);
+        
+        // Simulate form submission (replace with actual endpoint)
+        setTimeout(function() {
+          // Success message
+          alert('Thank you! Your appointment request has been submitted successfully. We will contact you within 24 hours to confirm your appointment.');
+          
+          // Reset form
+          $('#appointmentForm')[0].reset();
+          
+          // Close modal
+          $('#modalRequest').modal('hide');
+          
+          // Reset button
+          submitBtn.html(originalText).prop('disabled', false);
+          
+          // Optional: Send email notification (requires backend)
+          sendAppointmentEmail(formData);
+          
+        }, 2000);
+      });
+      
+      // Phone number formatting
+      $('#appointment_phone').on('input', function() {
+        let value = this.value.replace(/\D/g, '');
+        if (value.length > 0) {
+          if (value.startsWith('91')) {
+            value = '+' + value;
+          } else if (value.startsWith('0')) {
+            value = '+91' + value.substring(1);
+          } else if (!value.startsWith('+')) {
+            value = '+91' + value;
+          }
+        }
+        this.value = value;
+      });
+      
+      // Service selection helper
+      $('#appointment_service').on('change', function() {
+        const service = $(this).val();
+        if (service === 'emergency') {
+          alert('For emergency appointments, please call us directly at +91 90578 15285');
+        }
+      });
+    });
+    
+    // Function to send appointment email (requires backend implementation)
+    function sendAppointmentEmail(data) {
+      // This would typically send an email to the clinic
+      // For now, we'll just log the data
+      console.log('Appointment Request:', data);
+      
+      // Example of what the email content would look like:
+      const emailContent = `
+        New Appointment Request:
+        
+        Name: ${data.name}
+        Email: ${data.email}
+        Phone: ${data.phone}
+        Service: ${data.service || 'Not specified'}
+        Date: ${data.date}
+        Time: ${data.time}
+        Message: ${data.message || 'No additional message'}
+        
+        Please contact the patient to confirm this appointment.
+      `;
+      
+      console.log(emailContent);
+      
+      // In a real implementation, you would:
+      // 1. Send this data to your backend
+      // 2. Backend would send email to clinic
+      // 3. Backend might also send confirmation email to patient
+      // 4. Store appointment in database
+    }
+  </script>
   
   <!-- Vercel Analytics -->
   <script>
