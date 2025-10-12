@@ -8012,7 +8012,12 @@ h1, h2, h3, h4, h5,
     -webkit-transition: all 0.3s ease;
     -ms-transition: all 0.3s ease;
     transition: all 0.3s ease;
-    background-position: center 60% !important; }
+    background-position: center 50% !important; }
+  
+  /* Specific positioning for Dr. Yamini Sharma and Gungun Rajput */
+  .staff .img[style*="yamini.png"],
+  .staff .img[style*="Gungun-Rajput.png"] {
+    background-position: center 35% !important; }
   .staff .text .ftco-social {
     padding: 0; }
     .staff .text .ftco-social li {
