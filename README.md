@@ -5,16 +5,15 @@ A professional, responsive static website for Ekdantay Dental Clinic located in 
 ## 🏥 Clinic Information
 
 - **Clinic Name**: Ekdantay Dental Clinic
-- **Phone**: +91 90578 15285
+- **Phone**: +91 95878 15285
 - **Address**: 8, Janta Dharmshala, near Mahila Thana, Housing Board, Sawai Madhopur, Alanpur Rural, Rajasthan 322001
 - **Email**: info@ekdantay.com
 - **Website**: www.ekdantay.com
 
 ## 🕒 Operating Hours
 
-- **Monday - Friday**: 9:00 AM - 6:00 PM
-- **Saturday**: 9:00 AM - 3:00 PM
-- **Sunday**: Closed
+- **Monday - Saturday**: 10:30 AM - 5:30 PM
+- **Sunday**: 12:00 PM - 4:00 PM
 - **Emergency**: Available 24/7
 
 ## 👨‍⚕️ Our Team

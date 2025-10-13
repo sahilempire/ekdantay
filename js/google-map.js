@@ -52,7 +52,7 @@ function initMap() {
     
     // Add info window
     var infoWindow = new google.maps.InfoWindow({
-        content: '<div style="padding: 10px;"><h5>Ekdantay Dental Clinic</h5><p>8, Janta Dharmshala, near Mahila Thana,<br>Housing Board, Sawai Madhopur,<br>Alanpur Rural, Rajasthan 322001</p><p>Phone: +91 90578 15285</p></div>'
+        content: '<div style="padding: 10px;"><h5>Ekdantay Dental Clinic</h5><p>8, Janta Dharmshala, near Mahila Thana,<br>Housing Board, Sawai Madhopur,<br>Alanpur Rural, Rajasthan 322001</p><p>Phone: +91 95878 15285</p></div>'
     });
     
     marker.addListener('click', function() {
