@@ -15,9 +15,9 @@ const LOREM_B =
   'Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.'
 
 export const testimonials: Testimonial[] = [
-  { name: 'Dennis Green', role: 'Marketing Manager', image: '/images/person_1.jpg', quote: LOREM_A },
-  { name: 'Dennis Green', role: 'Interface Designer', image: '/images/person_2.jpg', quote: LOREM_B },
-  { name: 'Dennis Green', role: 'UI Designer',        image: '/images/person_3.jpg', quote: LOREM_B },
-  { name: 'Dennis Green', role: 'Web Developer',      image: '/images/person_1.jpg', quote: LOREM_B },
-  { name: 'Dennis Green', role: 'System Analytics',   image: '/images/person_2.jpg', quote: LOREM_B },
+  { name: 'Dennis Green', role: 'Marketing Manager', image: '/images/person_1.webp', quote: LOREM_A },
+  { name: 'Dennis Green', role: 'Interface Designer', image: '/images/person_2.webp', quote: LOREM_B },
+  { name: 'Dennis Green', role: 'UI Designer',        image: '/images/person_3.webp', quote: LOREM_B },
+  { name: 'Dennis Green', role: 'Web Developer',      image: '/images/person_1.webp', quote: LOREM_B },
+  { name: 'Dennis Green', role: 'System Analytics',   image: '/images/person_2.webp', quote: LOREM_B },
 ]
