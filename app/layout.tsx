@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from 'next'
 import { Fraunces, Figtree } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { clinic } from '@/content/clinic'
+import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/Footer'
+import { SmoothScroll } from '@/components/motion/SmoothScroll'
 import './globals.css'
 
 /**
@@ -47,7 +50,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a className="skip-link" href="#main">
           Skip to content
         </a>
+        <SmoothScroll />
+        <Header />
         {children}
+        <Footer />
         <Analytics />
       </body>
     </html>
