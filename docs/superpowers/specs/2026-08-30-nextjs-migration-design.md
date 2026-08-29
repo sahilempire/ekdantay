@@ -117,8 +117,8 @@ tactile materials — not a cartoon character.
 - Heavy motion is gated behind both `prefers-reduced-motion` **and** a viewport/capability
   check. Phones receive layout, typography and illustration without scroll hijacking.
 - Lenis smooth scroll is desktop-only; touch devices keep native momentum scrolling.
-- Rive WASM and `.riv` files are preloaded only where a Rive animation appears above the
-  fold; elsewhere they load on intersection.
+- Inline SVG illustration ships with the HTML and costs no extra request; its animation
+  is driven by Motion and starts on intersection, never on load.
 - Performance budget: the mobile Lighthouse score must not regress against the current
   static site. This is a merge gate (§11), not an aspiration.
 
@@ -467,8 +467,9 @@ motion budget is cut, not the gate.
 Additionally, on a simulated mid-range Android profile (4× CPU throttle, Slow 4G):
 - First Contentful Paint under 2.0 s
 - The 3D set-piece must not appear in the critical path — verified by confirming the page
-  reaches interactive with the R3F and Rive chunks still unloaded
-- Every Rive and R3F surface renders its static fallback under `prefers-reduced-motion`
+  reaches interactive with the R3F chunk still unloaded
+- Every R3F and animated-SVG surface renders its static fallback under
+  `prefers-reduced-motion`
 
 ## 12. Migration and cutover
 
