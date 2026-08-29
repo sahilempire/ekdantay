@@ -5,6 +5,7 @@ import { clinic } from '@/content/clinic'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { SmoothScroll } from '@/components/motion/SmoothScroll'
+import { JsonLd } from '@/components/JsonLd'
 import './globals.css'
 
 /**
@@ -34,6 +35,16 @@ export const metadata: Metadata = {
   },
   description:
     'Dental care in Sawai Madhopur, Rajasthan. Cleanings, whitening, orthodontics, implants and emergency treatment.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    siteName: clinic.name,
+    title: `${clinic.name} — ${clinic.tagline}`,
+    description:
+      'Dental care in Sawai Madhopur, Rajasthan. Cleanings, whitening, orthodontics, implants and emergency treatment.',
+  },
+  twitter: { card: 'summary_large_image' },
 }
 
 export const viewport: Viewport = {
@@ -50,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a className="skip-link" href="#main">
           Skip to content
         </a>
+        <JsonLd />
         <SmoothScroll />
         <Header />
         {children}
