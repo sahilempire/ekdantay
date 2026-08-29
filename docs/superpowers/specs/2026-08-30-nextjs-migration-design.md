@@ -59,16 +59,60 @@ Explicitly out of scope for this migration:
 
 ## 4. Decisions
 
-### 4.1 Visual fidelity — rebuild with Tailwind
+### 4.1 Visual direction — warm 3D illustration
 
-**Decision:** Rebuild the UI with Tailwind 4 rather than porting `style.css` verbatim.
+**Decision:** Rebuild with Tailwind 4, in a **stylized 3D illustration** direction —
+the synthesis of Directions B (immersive 3D) and C (warm illustrated) from the
+2026-08-30 reference research.
 
 **Rationale:** A pixel-identical port would retain 772 KB of CSS, 2.8 MB of icon fonts,
-and the dated template aesthetic — carrying forward the maintenance burden the migration
-is meant to remove. Rebuilding drops roughly 3.5 MB of CSS and fonts.
+and the dated template aesthetic. Beyond that, the user selected a direction combining
+3D depth with illustrated warmth. This is a deliberate synthesis, not a compromise: the
+objection to cold architectural 3D (South Cliff) was that impressiveness works against
+an anxious patient. Illustrated, characterful 3D inverts that — the visual impact is
+retained while the illustration style does the anxiety-reduction work that every 2026
+dental roundup identifies as the category's core UX problem.
 
-**Cost accepted:** The site will visibly differ from what is live today. Content, page
-structure, brand colors, and photography are preserved; only presentation changes.
+**Design brief:**
+
+- Stylized, warm, characterful 3D — never photoreal, never clinical-architectural.
+- One orchestrated 3D set-piece (hero), not a 3D site. Depth used where it carries
+  meaning; flat everywhere else.
+- Illustrated character/motion moments at the anxiety points: first visit, treatments,
+  pain-free messaging.
+- Real staff photography retained — the four real staff are a trust asset and must not
+  be replaced by avatars.
+
+**Cost accepted:** The site will differ substantially from what is live today. Content
+and page structure are preserved (§3, §4.2); presentation changes completely.
+
+**Dependency:** This direction requires illustration and 3D assets that do not currently
+exist. Asset sourcing is tracked as an open question (§14) and gates visual completion,
+though not the architecture.
+
+### 4.6 Motion stack and mobile strategy
+
+**Decision:** Rive as the primary illustrated-motion runtime, React Three Fiber for the
+single 3D set-piece, Motion as the base layer, Lenis for smooth scroll.
+
+**Rationale:** Rive carries interactive state machines that Lottie lacks, is
+GPU-accelerated at 120 fps, and produces files 10–15× smaller than equivalent Lottie.
+Its WASM runtime is 78 KB, lazy-loadable behind `React.lazy` + `Suspense`, and
+self-hostable to avoid a third-party connection. This makes character-led motion viable
+on the mid-range Android hardware most patients in Sawai Madhopur will use — the
+constraint that ruled out a full WebGL site.
+
+**Mobile strategy — mandatory, not optional:**
+
+- The 3D set-piece is lazy-loaded and never blocks first paint. A static rendered image
+  is the fallback.
+- Heavy motion is gated behind both `prefers-reduced-motion` **and** a viewport/capability
+  check. Phones receive layout, typography and illustration without scroll hijacking.
+- Lenis smooth scroll is desktop-only; touch devices keep native momentum scrolling.
+- Rive WASM and `.riv` files are preloaded only where a Rive animation appears above the
+  fold; elsewhere they load on intersection.
+- Performance budget: the mobile Lighthouse score must not regress against the current
+  static site. This is a merge gate (§11), not an aspiration.
 
 ### 4.2 Content — port verbatim, including placeholders
 
@@ -135,7 +179,11 @@ if the visual loss is missed.
 | Styling | Tailwind CSS, CSS-first `@theme` config | 4.3.3 |
 | Icons | `lucide-react` | latest |
 | Carousel | `embla-carousel-react` | latest |
-| Animation | `framer-motion` | latest |
+| Animation base layer | `motion` (formerly Framer Motion) | latest |
+| Illustrated motion | `@rive-app/react-canvas` — 78 KB WASM, lazy-loaded | latest |
+| 3D set-piece | `@react-three/fiber` + `@react-three/drei` — lazy-loaded | latest |
+| Smooth scroll | `lenis` — desktop only (§4.6) | latest |
+| Animated components | React Bits — copy-paste source, ships `prefers-reduced-motion` | n/a |
 | Dialog / a11y primitives | `@radix-ui/react-dialog` | latest |
 | Unit tests | Vitest + Testing Library | latest |
 | E2E tests | Playwright | latest |
@@ -401,8 +449,18 @@ Claims in this document are to be measured, not asserted.
   "info@yourdomain.com" **except** where `content/` deliberately supplies it — this
   distinguishes intentionally-ported placeholders from accidental template residue
 
-**Performance:** Lighthouse run against the current site and the migrated site, recorded
-side by side, so the §8 weight reductions are evidenced.
+**Performance — a merge gate, not a report.** Lighthouse is run against the current site
+and the migrated site and recorded side by side, evidencing the §8 weight reductions. The
+**mobile** performance score must not regress against the current static site. Since the
+chosen direction (§4.1) adds a 3D set-piece and a WASM runtime the current site does not
+carry, this gate is what keeps the direction honest: if the mobile score regresses, the
+motion budget is cut, not the gate.
+
+Additionally, on a simulated mid-range Android profile (4× CPU throttle, Slow 4G):
+- First Contentful Paint under 2.0 s
+- The 3D set-piece must not appear in the critical path — verified by confirming the page
+  reaches interactive with the R3F and Rive chunks still unloaded
+- Every Rive and R3F surface renders its static fallback under `prefers-reduced-motion`
 
 ## 12. Migration and cutover
 
@@ -431,6 +489,9 @@ Vercel Analytics is retained via `@vercel/analytics/react`.
 
 | Risk | Likelihood | Mitigation |
 |---|---|---|
+| **3D/WASM regresses mobile performance** | **High** | Hard merge gate (§11); everything lazy-loaded; static fallbacks; motion budget cut before the gate is |
+| **Assets never materialize, leaving placeholder geometry in production** | **Medium** | Architecture is asset-independent (§14); the site must be shippable and coherent with plain imagery in every 3D/Rive slot |
+| Stylized 3D reads as gimmicky rather than reassuring on a clinic site | Medium | One set-piece only, not a 3D site; illustration carries warmth; review against LAVA's restraint benchmark before merge |
 | Tailwind rebuild drifts visually from expectation | Medium | Page-by-page review; brand colors and photography preserved; user reviews before merge |
 | Placeholder content ships again on the new stack | Certain — accepted (§4.2) | `content/` makes removal a one-line edit; E2E test distinguishes deliberate from accidental |
 | WhatsApp excludes some patients | Low | Phone and email visible on every page |
@@ -440,7 +501,20 @@ Vercel Analytics is retained via `@vercel/analytics/react`.
 
 ## 14. Open questions
 
-None blocking. Two items deferred by decision rather than unresolved:
+**Blocking visual completion (not architecture):**
 
-1. Placeholder content cleanup — deferred to a separate pass (§4.2).
-2. Whether to reinstate parallax — dropped, reversible (§4.5).
+1. **Asset sourcing for §4.1.** The warm-3D-illustration direction requires a 3D hero
+   object and illustrated character/motion assets that do not exist today. The
+   architecture, content model, routes, booking flow and SEO layer can all be built
+   without them, with placeholders in their slots. Candidate routes: commission a
+   designer; Spline's text-to-3D generation; licensed stock 3D dental models; or
+   procedurally generated geometry built in R3F. This choice materially changes both
+   cost and the ceiling on visual quality.
+
+**Deferred by decision, not unresolved:**
+
+2. Placeholder content cleanup — deferred to a separate pass (§4.2).
+3. Whether to reinstate parallax — dropped, reversible (§4.5).
+
+**Noted, outside scope:** the exposed Google Maps API key should be revoked or
+referrer-restricted regardless of this migration (§7.2).
