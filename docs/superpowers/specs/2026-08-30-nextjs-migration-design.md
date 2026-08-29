@@ -92,15 +92,23 @@ though not the architecture.
 
 ### 4.6 Motion stack and mobile strategy
 
-**Decision:** Rive as the primary illustrated-motion runtime, React Three Fiber for the
-single 3D set-piece, Motion as the base layer, Lenis for smooth scroll.
+**Decision:** React Three Fiber for the single 3D set-piece with **procedurally generated
+geometry**, animated inline SVG for illustrated moments, Motion as the base layer, Lenis
+for smooth scroll (desktop only).
 
-**Rationale:** Rive carries interactive state machines that Lottie lacks, is
-GPU-accelerated at 120 fps, and produces files 10–15× smaller than equivalent Lottie.
-Its WASM runtime is 78 KB, lazy-loadable behind `React.lazy` + `Suspense`, and
-self-hostable to avoid a third-party connection. This makes character-led motion viable
-on the mid-range Android hardware most patients in Sawai Madhopur will use — the
-constraint that ruled out a full WebGL site.
+**Rationale:** Asset sourcing resolved to code-only (§14.1), which rules Rive out — Rive
+requires authored `.riv` files produced in its editor, and there is no one to author
+them. Inline SVG animated with Motion delivers the same illustrated warmth from source we
+can write, version, theme, and diff, with no runtime, no WASM, and no third-party
+dependency. Rive was evaluated (78 KB WASM, GPU-accelerated, 10–15× smaller than Lottie)
+and remains the right choice if commissioned assets are ever introduced; it is recorded
+here so that decision is not re-litigated from scratch.
+
+**Consequence — this is a strength, not a fallback.** Procedural geometry and inline SVG
+both react to the theme tokens, scale losslessly, cost no network requests, and are
+diffable in review. The ceiling is geometric elegance rather than a sculpted character
+mascot; the direction is therefore *abstract warm 3D* — soft forms, studio lighting,
+tactile materials — not a cartoon character.
 
 **Mobile strategy — mandatory, not optional:**
 
@@ -180,8 +188,8 @@ if the visual loss is missed.
 | Icons | `lucide-react` | latest |
 | Carousel | `embla-carousel-react` | latest |
 | Animation base layer | `motion` (formerly Framer Motion) | latest |
-| Illustrated motion | `@rive-app/react-canvas` — 78 KB WASM, lazy-loaded | latest |
-| 3D set-piece | `@react-three/fiber` + `@react-three/drei` — lazy-loaded | latest |
+| Illustrated motion | inline SVG animated with `motion` — authored in repo, no runtime | n/a |
+| 3D set-piece | `@react-three/fiber` + `@react-three/drei`, procedural geometry, lazy-loaded | latest |
 | Smooth scroll | `lenis` — desktop only (§4.6) | latest |
 | Animated components | React Bits — copy-paste source, ships `prefers-reduced-motion` | n/a |
 | Dialog / a11y primitives | `@radix-ui/react-dialog` | latest |
@@ -490,7 +498,7 @@ Vercel Analytics is retained via `@vercel/analytics/react`.
 | Risk | Likelihood | Mitigation |
 |---|---|---|
 | **3D/WASM regresses mobile performance** | **High** | Hard merge gate (§11); everything lazy-loaded; static fallbacks; motion budget cut before the gate is |
-| **Assets never materialize, leaving placeholder geometry in production** | **Medium** | Architecture is asset-independent (§14); the site must be shippable and coherent with plain imagery in every 3D/Rive slot |
+| Procedural geometry reads as cheap rather than crafted | Medium | Quality lives in lighting, material and motion, not polygon count; benchmark against LAVA's restraint before merge; every 3D surface has a designed static fallback that must stand on its own |
 | Stylized 3D reads as gimmicky rather than reassuring on a clinic site | Medium | One set-piece only, not a 3D site; illustration carries warmth; review against LAVA's restraint benchmark before merge |
 | Tailwind rebuild drifts visually from expectation | Medium | Page-by-page review; brand colors and photography preserved; user reviews before merge |
 | Placeholder content ships again on the new stack | Certain — accepted (§4.2) | `content/` makes removal a one-line edit; E2E test distinguishes deliberate from accidental |
@@ -501,15 +509,14 @@ Vercel Analytics is retained via `@vercel/analytics/react`.
 
 ## 14. Open questions
 
-**Blocking visual completion (not architecture):**
+**Resolved:**
 
-1. **Asset sourcing for §4.1.** The warm-3D-illustration direction requires a 3D hero
-   object and illustrated character/motion assets that do not exist today. The
-   architecture, content model, routes, booking flow and SEO layer can all be built
-   without them, with placeholders in their slots. Candidate routes: commission a
-   designer; Spline's text-to-3D generation; licensed stock 3D dental models; or
-   procedurally generated geometry built in R3F. This choice materially changes both
-   cost and the ceiling on visual quality.
+1. **Asset sourcing for §4.1 — procedural, in code.** Decided 2026-08-30. All 3D geometry
+   is generated in React Three Fiber and all illustration is inline SVG authored in the
+   repository. No commissioned assets, no marketplace models, no third-party design tool,
+   no lead time, no cost. This resolves the only item that was blocking visual
+   completion, and it constrains the direction to *abstract warm 3D* rather than
+   character mascots (§4.6).
 
 **Deferred by decision, not unresolved:**
 
