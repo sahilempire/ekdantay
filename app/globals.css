@@ -1,3 +1,268 @@
 @import "tailwindcss";
 
-/* Design tokens land here in Task 2. */
+/* ==========================================================================
+   Ekdantay design tokens
+
+   Direction: "abstract warm 3D" (spec 4.6) - soft forms, studio lighting,
+   tactile materials.
+
+   The palette is derived from the enamel/bone world rather than the
+   medical-blue or clinical-mint every dental template reaches for. A warm
+   bone ground gives procedural 3D forms something to cast soft shadows onto;
+   deep jade carries the brand; warm amber is reserved exclusively for the
+   studio-light moments inside the 3D scene, never as UI chrome.
+
+   Every colour is declared here at :root so it exists in all three theme
+   states. Nothing is defined only inside a media query.
+   ========================================================================== */
+
+:root {
+  /* grounds */
+  --paper:          #F3EFE8;
+  --surface:        #FBF8F3;
+  --surface-raised: #FFFFFF;
+  --surface-sunk:   #E9E3D9;
+
+  /* type */
+  --ink:            #1F1B16;
+  --ink-soft:       #4A4239;
+  --muted:          #786E62;
+
+  /* structure */
+  --line:           #DFD7CB;
+  --line-strong:    #C6BBAA;
+
+  /* brand */
+  --accent:         #0F6B5C;
+  --accent-hover:   #0C574B;
+  --accent-ink:     #0A4A40;
+  --accent-wash:    #DDEAE4;
+  --on-accent:      #F7FBF9;
+
+  /* studio light - 3D scene only */
+  --glow:           #E8A94E;
+  --glow-soft:      #F5DCB0;
+
+  /* semantic */
+  --danger:         #A8391F;
+  --success:        #2C6E49;
+
+  /* elevation */
+  --shadow-sm: 0 1px 2px rgb(31 27 22 / 0.05);
+  --shadow-md: 0 2px 4px rgb(31 27 22 / 0.04), 0 8px 20px -8px rgb(31 27 22 / 0.12);
+  --shadow-lg: 0 4px 8px rgb(31 27 22 / 0.05), 0 24px 48px -16px rgb(31 27 22 / 0.18);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:          #14110D;
+    --surface:        #1D1913;
+    --surface-raised: #262019;
+    --surface-sunk:   #0D0B08;
+
+    --ink:            #F0EAE0;
+    --ink-soft:       #CFC5B8;
+    --muted:          #9A8F80;
+
+    --line:           #332C23;
+    --line-strong:    #4A4034;
+
+    --accent:         #4FBFA6;
+    --accent-hover:   #6BD0B9;
+    --accent-ink:     #8ED9C6;
+    --accent-wash:    #12302A;
+    --on-accent:      #08221D;
+
+    --glow:           #F0BC6A;
+    --glow-soft:      #6B5330;
+
+    --danger:         #E0765A;
+    --success:        #5FBFA8;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 2px 4px rgb(0 0 0 / 0.3), 0 8px 20px -8px rgb(0 0 0 / 0.5);
+    --shadow-lg: 0 4px 8px rgb(0 0 0 / 0.3), 0 24px 48px -16px rgb(0 0 0 / 0.6);
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper:          #14110D;
+  --surface:        #1D1913;
+  --surface-raised: #262019;
+  --surface-sunk:   #0D0B08;
+
+  --ink:            #F0EAE0;
+  --ink-soft:       #CFC5B8;
+  --muted:          #9A8F80;
+
+  --line:           #332C23;
+  --line-strong:    #4A4034;
+
+  --accent:         #4FBFA6;
+  --accent-hover:   #6BD0B9;
+  --accent-ink:     #8ED9C6;
+  --accent-wash:    #12302A;
+  --on-accent:      #08221D;
+
+  --glow:           #F0BC6A;
+  --glow-soft:      #6B5330;
+
+  --danger:         #E0765A;
+  --success:        #5FBFA8;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 2px 4px rgb(0 0 0 / 0.3), 0 8px 20px -8px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 4px 8px rgb(0 0 0 / 0.3), 0 24px 48px -16px rgb(0 0 0 / 0.6);
+
+  color-scheme: dark;
+}
+
+/* Expose the runtime tokens to Tailwind's utility generator. `inline` keeps
+   the var() reference live, so utilities follow the theme instead of baking
+   in the light value. */
+@theme inline {
+  --color-paper:          var(--paper);
+  --color-surface:        var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunk:   var(--surface-sunk);
+
+  --color-ink:            var(--ink);
+  --color-ink-soft:       var(--ink-soft);
+  --color-muted:          var(--muted);
+
+  --color-line:           var(--line);
+  --color-line-strong:    var(--line-strong);
+
+  --color-accent:         var(--accent);
+  --color-accent-hover:   var(--accent-hover);
+  --color-accent-ink:     var(--accent-ink);
+  --color-accent-wash:    var(--accent-wash);
+  --color-on-accent:      var(--on-accent);
+
+  --color-glow:           var(--glow);
+  --color-glow-soft:      var(--glow-soft);
+
+  --color-danger:         var(--danger);
+  --color-success:        var(--success);
+
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-body:    var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  /* Type scale - major third, capped so headings stay calm on a clinic site */
+  --text-2xs:  0.6875rem;
+  --text-xs:   0.78125rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.375rem;
+  --text-2xl:  1.75rem;
+  --text-3xl:  2.25rem;
+  --text-4xl:  3rem;
+  --text-5xl:  4rem;
+
+  --radius-card: 0.75rem;
+  --radius-pill: 999px;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-fraunces), Georgia, serif;
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+p {
+  text-wrap: pretty;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+img, svg, video, canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Skip link - the old site had none */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 0 0 var(--radius-card) 0;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* Numeric alignment wherever digits sit in columns */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Motion
+
+   Every animated surface must survive this being on (spec 4.6). Components
+   also check it in JS so R3F and observers never even mount.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
