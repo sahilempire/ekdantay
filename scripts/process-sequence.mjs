@@ -212,6 +212,8 @@ if (!files.length) {
   process.exit(1)
 }
 
+const manifest = { frame: { width: 0, height: 0 }, layers: [] }
+
 console.log('Keying out black and trimming...\n')
 
 for (const file of files.sort()) {
@@ -219,6 +221,7 @@ for (const file of files.sort()) {
   const { raw, width, height } = await keyOut(resolve(DIR, file))
 
   if (name === 'exploded') {
+    manifest.frame = { width, height }
     const minPixels = Math.round(width * height * 0.0009)
     const { parts: comps, labelled } = components(raw, width, height, minPixels)
     // Roots sit side by side; anything within this vertical distance is one layer.
@@ -247,6 +250,19 @@ for (const file of files.sort()) {
 
       const layer = LAYERS[i] ?? `part-${i + 1}`
       await writeWebp(own, width, height, box, resolve(DIR, `layer-${layer}.webp`))
+
+      // Record where this part sat in the source, as fractions of the frame.
+      // The component needs this to rebuild the exploded arrangement without
+      // anyone hand-typing coordinates that would silently rot if the images
+      // are ever regenerated.
+      manifest.layers.push({
+        name: layer,
+        src: `/images/sequence/layer-${layer}.webp`,
+        left: box.left / width,
+        top: box.top / height,
+        width: box.w / width,
+        height: box.h / height,
+      })
       console.log(`    ${layer.padEnd(8)} y ${String(g.minY).padStart(4)}-${String(g.maxY).padStart(4)}  ${box.w}x${box.h}`)
     }
 
@@ -259,6 +275,13 @@ for (const file of files.sort()) {
     console.log(`  ${name.padEnd(12)} ${box.w}x${box.h}`)
   }
 }
+
+const { writeFile } = await import('node:fs/promises')
+await writeFile(
+  resolve(DIR, 'layers.json'),
+  JSON.stringify(manifest, null, 2) + '\n',
+)
+console.log(`\nWrote layers.json (${manifest.layers.length} layers)`)
 
 console.log('\nOutput:')
 const out = (await readdir(DIR)).filter((f) => f.endsWith('.webp')).sort()

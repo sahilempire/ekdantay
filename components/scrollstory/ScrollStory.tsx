@@ -14,6 +14,20 @@ import { clinic } from '@/content/clinic'
 import { hoursSummary } from '@/lib/hours'
 
 const Scene = dynamic(() => import('./Scene'), { ssr: false })
+const ImageStage = dynamic(
+  () => import('./ImageStage').then((m) => m.ImageStage),
+  { ssr: false },
+)
+
+/**
+ * What drives the stage.
+ *
+ * 'images' uses pre-rendered layer images: 832 KB against 2,957 KB for the GLB
+ * plus the three.js chunk, no WebGL requirement, and immune to every geometry
+ * artifact the derived model suffered from.
+ * 'derived' keeps the R3F scene, so the two can be compared on identical beats.
+ */
+const STAGE: 'images' | 'derived' = 'images'
 
 /**
  * The whole top of the page: one pinned 3D scene the camera flies through,
@@ -122,7 +136,14 @@ export function ScrollStory() {
         animate={{ backgroundColor: beat.bg }}
         transition={{ duration: 0.8, ease: 'easeInOut' }}
       >
-        <div className="absolute inset-0">{ready && <Scene progressRef={progress} />}</div>
+        <div className="absolute inset-0">
+          {ready &&
+            (STAGE === 'images' ? (
+              <ImageStage progressRef={progress} />
+            ) : (
+              <Scene progressRef={progress} />
+            ))}
+        </div>
 
         {/*
           Directional scrim on the copy side.

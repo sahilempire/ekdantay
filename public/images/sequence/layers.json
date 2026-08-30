@@ -1,0 +1,40 @@
+{
+  "frame": {
+    "width": 1086,
+    "height": 1448
+  },
+  "layers": [
+    {
+      "name": "enamel",
+      "src": "/images/sequence/layer-enamel.webp",
+      "left": 0.3296500920810313,
+      "top": 0.013121546961325966,
+      "width": 0.3259668508287293,
+      "height": 0.18024861878453038
+    },
+    {
+      "name": "dentin",
+      "src": "/images/sequence/layer-dentin.webp",
+      "left": 0.35082872928176795,
+      "top": 0.20303867403314918,
+      "width": 0.281767955801105,
+      "height": 0.21685082872928177
+    },
+    {
+      "name": "pulp",
+      "src": "/images/sequence/layer-pulp.webp",
+      "left": 0.3710865561694291,
+      "top": 0.43162983425414364,
+      "width": 0.23848987108655617,
+      "height": 0.393646408839779
+    },
+    {
+      "name": "root",
+      "src": "/images/sequence/layer-root.webp",
+      "left": 0.3241252302025783,
+      "top": 0.6954419889502762,
+      "width": 0.3379373848987109,
+      "height": 0.28591160220994477
+    }
+  ]
+}

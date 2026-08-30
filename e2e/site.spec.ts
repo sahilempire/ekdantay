@@ -136,18 +136,20 @@ test.describe('booking', () => {
 test.describe('mobile', () => {
   test.use({ ...devicesPixel() })
 
-  test('renders the scroll story with a canvas on a phone', async ({ page }) => {
-    // The direction changed deliberately: 2026 scrollytelling guidance is that
-    // desktop-only scroll experiences are obsolete, and the right pattern is a
-    // lighter scene on weak hardware rather than no scene. This asserts the
-    // canvas actually mounts on a touch device.
+  test('renders the scroll story on a phone, without WebGL', async ({ page }) => {
+    // The stage is now pre-rendered images rather than real-time 3D, which is
+    // what lets it work identically on low-end hardware. Asserting no canvas
+    // is the point: if one reappears, WebGL is back in the critical path on
+    // exactly the devices this was moved away from it for.
     await page.goto('/', { waitUntil: 'networkidle' })
     const story = page.locator('section[aria-label="Modern dentistry, explained"]')
     await expect(story).toHaveCount(1)
 
     await story.scrollIntoViewIfNeeded()
-    await page.waitForTimeout(2500)
-    await expect(story.locator('canvas')).toHaveCount(1)
+    await page.waitForTimeout(2000)
+
+    await expect(story.locator('canvas')).toHaveCount(0)
+    await expect(story.locator('img').first()).toBeVisible()
   })
 
   test('the scroll story copy is reachable without a pointer', async ({ page }) => {
