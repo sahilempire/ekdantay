@@ -651,23 +651,22 @@ const dentinSplit = splitSurface(dentinSurface, shellRaw.index, shellRaw.normal,
 const dentin = makeSolid(dentinSplit.above, WALL * 0.8, dentinSplit.loops)
 console.log(`  dentin: ${(dentin.position.length / 9).toLocaleString()} tris (solid)`)
 
-/**
- * Pulp, derived from the tooth rather than imported.
- *
- * The GIDPTD canal scan was measurably the worst asset in the model: 5,071
- * boundary edges and 505 non-manifold edges, against 0 for the shell and a few
- * hundred for every derived layer. It is a thin branching tube system,
- * shredded at source, and no amount of downstream smoothing or hole filling
- * repairs a mesh that damaged - it simply rendered as a torn red blob.
- *
- * Offsetting the tooth's own surface inward a third time gives a pulp that is
- * watertight by construction, guaranteed to sit inside the dentin because it
- * derives from the same surface, and anatomically fair: the pulp chamber
- * really is a smaller copy of the tooth's outer form.
- */
-const pulpSurface = shrinkAlongNormals(shell.position, shellRaw.normal, WALL * 2.1)
-const pulp = splitSurface(pulpSurface, shellRaw.index, shellRaw.normal, -Infinity).above
-console.log(`  pulp:   ${(pulp.position.length / 9).toLocaleString()} tris (derived, watertight)`)
+// Pulp: fitted so the canals stay inside the dentin cavity.
+let canalScale = 0.5
+let pulpPos
+const shellMaxR = cej.equatorRadius
+for (let attempt = 0; attempt < 10; attempt++) {
+  const c = normalize(canalRaw.position, TARGET_HEIGHT * canalScale)
+  pulpPos = transform(c.position, 1, [0, -TARGET_HEIGHT * 0.06, 0])
+  let maxR = 0
+  for (let i = 0; i < pulpPos.length; i += 3) {
+    const r = Math.hypot(pulpPos[i], pulpPos[i + 2])
+    if (r > maxR) maxR = r
+  }
+  if (maxR < shellMaxR * 0.4) break
+  canalScale *= 0.88
+}
+console.log(`  pulp:   fitted at ${(canalScale * 100).toFixed(0)}% height`)
 
 
 // ---------------------------------------------------------------------------
@@ -707,7 +706,7 @@ const LAYERS = [
   { name: 'whole', data: whole, color: [0.98, 0.96, 0.93, 1], rough: 0.14 },
   { name: 'enamel', data: enamel, color: [0.97, 0.95, 0.91, 1], rough: 0.15 },
   { name: 'dentin', data: dentin, color: [0.92, 0.85, 0.75, 1], rough: 0.55 },
-  { name: 'pulp', data: pulp, color: [0.77, 0.39, 0.35, 1], rough: 0.7 },
+  { name: 'pulp', data: { position: Array.from(pulpPos), normal: canalRaw.normal }, color: [0.77, 0.39, 0.35, 1], rough: 0.7 },
   { name: 'root', data: root, color: [0.94, 0.89, 0.82, 1], rough: 0.62 },
 ]
 

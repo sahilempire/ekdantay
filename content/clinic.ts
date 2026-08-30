@@ -49,14 +49,10 @@ export const clinic: Clinic = {
 }
 
 /**
- * Required attribution for the 3D asset in the scroll sequence.
+ * Required attribution for the 3D assets in the scroll sequence.
  *
- * CC BY 4.0 permits commercial use but makes credit mandatory, so this has to
- * actually render rather than sit in a README.
- *
- * Only the Dundee shell is credited now. The GIDPTD canal model was dropped -
- * every layer including the pulp is derived from the Dundee scan - and
- * crediting a model we no longer ship would be misleading.
+ * Both source models are CC BY 4.0, which permits commercial use but makes
+ * credit mandatory - so this has to actually render, not sit in a README.
  */
 export const modelCredits = [
   {
@@ -64,6 +60,12 @@ export const modelCredits = [
     author: 'University of Dundee, School of Dentistry',
     source:
       'https://sketchfab.com/3d-models/mandibular-first-molar-e1c919d6603846eca873154eeededdd6',
+  },
+  {
+    title: 'Sistema de conductos de un molar mandibular',
+    author: 'GIDPTD, Universitat de València',
+    source:
+      'https://sketchfab.com/3d-models/sistema-de-conductos-de-un-molar-mandibular-f7f8a0877f314c4998f21d80ffc9a729',
   },
 ] as const
 
