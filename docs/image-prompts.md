@@ -19,10 +19,20 @@ alternatives with room to do it in one sitting:
   Leonardo               150 tokens / day, about 15-35 images
   ChatGPT                2-3 / day
 
-Gemini is the practical choice for a set this size. Note that providers change
-these limits often, and OpenAI publishes no official figure at all.
+DECIDED: ChatGPT, despite the tighter limit. Gemini stamps a visible mark on
+free-tier output and its results are less creative for this kind of stylised
+medical illustration, and output quality matters more here than throughput.
 
-## If you are rate limited, generate in this order
+On watermarks generally, whichever tool is used: the pipeline keys out the
+pure black background and crops to the subject, so a corner mark falls outside
+the crop and is discarded. It would only matter if it landed ON the subject.
+
+Note that providers change these limits often, and OpenAI publishes no official
+figure at all.
+
+## Generation order across days
+
+At 2-3 images per day, day one is enough for a complete working sequence:
 
 Image 4 alone yields five layers and carries four beats, so three images are
 enough for a complete working sequence:
