@@ -52,6 +52,17 @@ const SCENES: Record<string, Scene> = {
   whole: { image: '/images/sequence/whole.webp', scale: 1, alt: 'A whole, intact molar tooth' },
 }
 
+/**
+ * Vertical position of a layer for a given spread, as a fraction of the frame.
+ *
+ * At spread 0 the parts nest toward the centre into a whole tooth; at 1 they
+ * sit in the arrangement the source image was generated with.
+ */
+function placeTop(layer: { top: number; height: number }, spread: number) {
+  const fromMiddle = layer.top + layer.height / 2 - 0.5
+  return 0.5 + fromMiddle * (0.35 + spread * 0.65) - layer.height / 2
+}
+
 /** Aspect ratio of the source frame, so the layers keep their arrangement. */
 const FRAME_RATIO = layers.frame.width / layers.frame.height
 
@@ -75,9 +86,22 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
   const beat = resolveBeat(progressRef.current ?? 0)
   const scene = SCENES[beatId] ?? SCENES.hero
 
+  /**
+   * Where the focused layer sits once `spread` has been applied, and how far
+   * the frame must move to centre it. Mirrors the placement maths below, so
+   * the two cannot drift apart.
+   */
+  const focused = scene.focus
+    ? layers.layers.find((l) => l.name === scene.focus)
+    : undefined
+  const focusZoom = focused ? 1.55 : 1
+  const focusShiftY = focused
+    ? -(placeTop(focused, scene.spread ?? 0) + focused.height / 2 - 0.5) * 100
+    : 0
+
   // Beats already declare which side the copy sits on and how far the subject
   // should move; reuse that so the image never lands under the text.
-  const shiftX = (beat.offset?.x ?? 0) * 9
+  const shiftX = (beat.offset?.x ?? 0) * 17
 
   return (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
@@ -85,7 +109,19 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
         className="relative h-[78%] transition-transform duration-[1200ms] ease-out"
         style={{
           aspectRatio: FRAME_RATIO,
-          transform: `translateX(${shiftX}%) scale(${scene.scale})`,
+          /*
+            Zoom onto the layer this beat is about.
+
+            The stack is shifted so the focused layer sits at the centre of the
+            frame, then scaled in. Without the shift, scaling just magnifies the
+            middle of the assembly and pushes the part being described off
+            screen - the camera has to follow the subject, not the object.
+          */
+          transform: [
+            `translateX(${shiftX}%)`,
+            `translateY(${focusShiftY}%)`,
+            `scale(${scene.scale * focusZoom})`,
+          ].join(' '),
         }}
       >
         {/* Full-frame scenes: skull, jaw, braces, whole tooth. */}
@@ -119,10 +155,7 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
           the same exploded arrangement the image was generated with.
         */}
         {layers.layers.map((layer) => {
-          const centre = layer.top + layer.height / 2
-          const fromMiddle = centre - 0.5
-          const spread = scene.spread ?? 0
-          const top = 0.5 + fromMiddle * (0.35 + spread * 0.65) - layer.height / 2
+          const top = placeTop(layer, scene.spread ?? 0)
 
           const isFocus = scene.focus === layer.name
           const shown = scene.layered ?? false

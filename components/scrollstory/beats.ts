@@ -1,6 +1,10 @@
 /**
  * The scroll sequence: the whole top of the page, not one section.
  *
+ * `at` values are even eighths. They must not reach 1.0: a beat pinned at the
+ * very end has a zero-width range and flashes past in a single instant, which
+ * is what previously happened to the closing call to action.
+ *
  * Modelled on oryzo.ai: a single continuous 3D scene the camera flies through,
  * each beat pairing a camera position with a copy block, a technical readout,
  * and a ground colour. The difference is that every beat here is an actual
@@ -70,7 +74,7 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'intro',
-    at: 0.14,
+    at: 0.125,
     eyebrow: 'Start here',
     title: 'Your tooth, explained',
     body: 'Most people have never seen what a dentist actually does. Scroll, and we will show you, layer by layer.',
@@ -84,7 +88,7 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'enamel',
-    at: 0.28,
+    at: 0.25,
     eyebrow: 'The outer shell',
     title: 'Enamel',
     body: 'The hardest tissue in your body, and the part that stains. Professional whitening lifts years of tea and tobacco without touching what is underneath.',
@@ -100,7 +104,7 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'dentin',
-    at: 0.42,
+    at: 0.375,
     eyebrow: 'Beneath the surface',
     title: 'Dentin',
     body: 'Softer, and full of microscopic tubules. Once decay reaches here it moves fast, which is why a cleaning and a filling now costs a fraction of what waiting costs.',
@@ -117,7 +121,7 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'pulp',
-    at: 0.56,
+    at: 0.5,
     eyebrow: 'The living core',
     title: 'Pulp',
     body: 'Nerves and blood vessels. This is where toothache comes from, and where a root canal goes. Modern anaesthesia means you feel pressure, not pain.',
@@ -134,7 +138,7 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'root',
-    at: 0.7,
+    at: 0.625,
     eyebrow: 'The anchor',
     title: 'Root',
     body: 'Set into the jaw. When a tooth cannot be saved, an implant replaces the root itself, so the replacement bites, and lasts, like the original.',
@@ -151,7 +155,7 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'straighten',
-    at: 0.84,
+    at: 0.75,
     eyebrow: 'Position matters',
     title: 'Alignment',
     body: 'Crowded teeth trap what a brush cannot reach. Straightening is not only cosmetic. It is the cheapest long-term way to keep the layers above intact.',
@@ -168,7 +172,7 @@ export const BEATS: Beat[] = [
   {
     id: 'whole',
     kind: 'cta',
-    at: 1,
+    at: 0.875,
     eyebrow: 'Put back together',
     title: 'Book a visit',
     body: 'Ten minutes in the chair is usually all it takes to know where you stand. No obligation, no lecture.',
