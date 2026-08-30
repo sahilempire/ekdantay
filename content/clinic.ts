@@ -58,27 +58,3 @@ export const clinic: Clinic = {
     url: 'https://www.linkedin.com/in/sahilempire',
   },
 }
-
-/**
- * Required attribution for the 3D assets in the scroll sequence.
- *
- * Both source models are CC BY 4.0, which permits commercial use but makes
- * credit mandatory - so this has to actually render, not sit in a README.
- */
-export const modelCredits = [
-  {
-    title: 'Mandibular First Molar',
-    author: 'University of Dundee, School of Dentistry',
-    source:
-      'https://sketchfab.com/3d-models/mandibular-first-molar-e1c919d6603846eca873154eeededdd6',
-  },
-  {
-    title: 'Sistema de conductos de un molar mandibular',
-    author: 'GIDPTD, Universitat de València',
-    source:
-      'https://sketchfab.com/3d-models/sistema-de-conductos-de-un-molar-mandibular-f7f8a0877f314c4998f21d80ffc9a729',
-  },
-] as const
-
-export const MODEL_LICENSE_URL = 'https://creativecommons.org/licenses/by/4.0/'
-

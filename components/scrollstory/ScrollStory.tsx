@@ -13,21 +13,10 @@ import { Magnetic } from '@/components/motion/Magnetic'
 import { clinic } from '@/content/clinic'
 import { hoursSummary } from '@/lib/hours'
 
-const Scene = dynamic(() => import('./Scene'), { ssr: false })
 const ImageStage = dynamic(
   () => import('./ImageStage').then((m) => m.ImageStage),
   { ssr: false },
 )
-
-/**
- * What drives the stage.
- *
- * 'images' uses pre-rendered layer images: 832 KB against 2,957 KB for the GLB
- * plus the three.js chunk, no WebGL requirement, and immune to every geometry
- * artifact the derived model suffered from.
- * 'derived' keeps the R3F scene, so the two can be compared on identical beats.
- */
-const STAGE: 'images' | 'derived' = 'images'
 
 /**
  * The whole top of the page: one pinned 3D scene the camera flies through,
@@ -37,16 +26,16 @@ const STAGE: 'images' | 'derived' = 'images'
  *
  * Scroll progress is written to a REF, not state. React state here would
  * reconcile the tree on every scroll event; the ref feeds useFrame directly
- * and the canvas never re-renders. Only the copy layer is state-driven, and
+ * and the stage never re-renders. Only the copy layer is state-driven, and
  * only when the beat index actually changes.
  *
  * The ground colour transitions per beat. That shifting ground is most of why
  * a scroll sequence reads as cinematic rather than as a long page, and it is
  * cheap - one animated background on the sticky container.
  *
- * It runs on phones. The 2026 guidance is explicit that desktop-only scroll
- * experiences are obsolete and the right pattern is device-tier detection
- * serving a lighter scene, which is what Scene does.
+ * It runs on phones. The stage is pre-rendered images rather than real-time
+ * 3D, which is what lets it behave identically on low-end Android instead of
+ * needing a device-tier fallback: there is no WebGL in the critical path.
  */
 export function ScrollStory() {
   const wrap = useRef<HTMLDivElement>(null)
@@ -147,14 +136,7 @@ export function ScrollStory() {
         animate={{ backgroundColor: beat.bg }}
         transition={{ duration: 0.8, ease: 'easeInOut' }}
       >
-        <div className="absolute inset-0">
-          {ready &&
-            (STAGE === 'images' ? (
-              <ImageStage progressRef={progress} />
-            ) : (
-              <Scene progressRef={progress} />
-            ))}
-        </div>
+        <div className="absolute inset-0">{ready && <ImageStage progressRef={progress} />}</div>
 
         {/*
           Directional scrim on the copy side.
