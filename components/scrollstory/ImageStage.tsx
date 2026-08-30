@@ -194,7 +194,7 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
                 top: `${top * 100}%`,
                 width: `${layer.width * 100}%`,
                 height: `${layer.height * 100}%`,
-                opacity: shown ? (isFocus ? 1 : 0.5) : 0,
+                opacity: shown ? (isFocus ? 1 : 0.42) : 0,
                 transform: `scale(${isFocus ? 1.06 : 1})`,
                 zIndex: isFocus ? 2 : 1,
               }}

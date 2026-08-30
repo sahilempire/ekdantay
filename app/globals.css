@@ -320,6 +320,8 @@ button, input, select, textarea {
     inset-block: 0;
     left: var(--stage-left);
     right: var(--stage-right);
+    /* Reset the phone band's fixed height, or desktop inherits 46%. */
+    height: auto;
   }
 }
 
