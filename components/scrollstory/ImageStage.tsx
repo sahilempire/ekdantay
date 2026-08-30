@@ -43,7 +43,7 @@ interface Scene {
 
 const SCENES: Record<string, Scene> = {
   hero: { image: '/images/sequence/skull.webp', scale: 1, alt: 'Human skull showing the teeth' },
-  intro: { image: '/images/sequence/jaw.webp', scale: 1.15, alt: 'Lower jaw with a full arch of teeth' },
+  intro: { image: '/images/sequence/jaw.webp', scale: 1.2, alt: 'Lower jaw with a full arch of teeth' },
   enamel: { layered: true, spread: 0.15, focus: 'enamel', scale: 1.1, alt: 'Tooth layers, enamel highlighted' },
   dentin: { layered: true, spread: 0.55, focus: 'dentin', scale: 1.1, alt: 'Tooth layers, dentin highlighted' },
   pulp: { layered: true, spread: 0.85, focus: 'pulp', scale: 1.1, alt: 'Tooth layers, pulp and nerve highlighted' },
@@ -68,7 +68,18 @@ const FRAME_RATIO = layers.frame.width / layers.frame.height
 
 export function ImageStage({ progressRef }: { progressRef: React.RefObject<number> }) {
   const [beatId, setBeatId] = useState('hero')
+  const [isNarrow, setIsNarrow] = useState(false)
   const raf = useRef(0)
+
+  // The stage has a whole half to itself on desktop and can push in hard; on a
+  // phone it sits behind the copy, where a big zoom would just crowd the text.
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    setIsNarrow(mq.matches)
+    const onChange = (e: MediaQueryListEvent) => setIsNarrow(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   // Poll the ref rather than subscribing to state upstream: the parent already
   // writes scroll progress to a ref precisely so nothing re-renders per frame,
@@ -94,7 +105,7 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
   const focused = scene.focus
     ? layers.layers.find((l) => l.name === scene.focus)
     : undefined
-  const focusZoom = focused ? 1.28 : 1
+  const focusZoom = focused ? (isNarrow ? 1.2 : 1.85) : 1
   const focusShiftY = focused
     ? -(placeTop(focused, scene.spread ?? 0) + focused.height / 2 - 0.5) * 100
     : 0
@@ -121,7 +132,7 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
       }
     >
       <div
-        className="relative h-[42%] max-h-[42vh] opacity-55 transition-transform duration-[1200ms] ease-out md:h-[62%] md:max-h-[62vh] md:opacity-100"
+        className="relative h-[42%] max-h-[42vh] opacity-55 transition-transform duration-[1200ms] ease-out md:h-[74%] md:max-h-[74vh] md:opacity-100"
         style={{
           aspectRatio: FRAME_RATIO,
           /*
