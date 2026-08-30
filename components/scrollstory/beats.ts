@@ -9,8 +9,6 @@
  *
  * `at` is normalised scroll progress (0-1) across the pinned section.
  */
-export type LayerName = 'whole' | 'enamel' | 'dentin' | 'pulp' | 'root'
-
 export interface Beat {
   id: string
   at: number
@@ -27,16 +25,7 @@ export interface Beat {
    * instead of sitting small in a wide shot of the whole assembly.
    */
   target?: { x: number; y: number; z: number }
-  /**
-   * Which layers are visible at this beat.
-   *
-   * The sequence shows ONE layer at a time and crossfades between them,
-   * rather than pulling an assembled tooth apart. Separating derived shells
-   * always read as scattering debris no matter how the geometry was built;
-   * swapping which layer renders keeps every frame a single clean solid.
-   */
-  show: LayerName[]
-  /** Retained for the camera rig; the layers no longer physically separate. */
+  /** How far the tooth's parts separate. 0 = whole, 1 = fully exploded. */
   explode: number
   /** Which layer glows to draw the eye. */
   focus?: 'enamel' | 'dentin' | 'pulp' | 'root' | null
@@ -66,7 +55,6 @@ export interface Beat {
 export const BEATS: Beat[] = [
   {
     id: 'hero',
-    show: ['whole'],
     kind: 'hero',
     at: 0,
     eyebrow: 'Sawai Madhopur, Rajasthan',
@@ -82,7 +70,6 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'intro',
-    show: ['whole'],
     at: 0.14,
     eyebrow: 'Start here',
     title: 'Your tooth, explained',
@@ -97,16 +84,15 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'enamel',
-    show: ['enamel'],
     at: 0.28,
     eyebrow: 'The outer shell',
     title: 'Enamel',
     body: 'The hardest tissue in your body, and the part that stains. Professional whitening lifts years of tea and tobacco without touching what is underneath.',
     readout: { label: 'Whitening', value: '₹3,500 / session' },
-    camera: { x: 0.8, y: 1.0, z: 4.6 },
+    camera: { x: 1.0, y: 1.4, z: 6.0 },
     offset: { x: 0.7, y: 0 },
-    target: { x: 0, y: 0.55, z: 0 },
-    explode: 0,
+    target: { x: 0, y: 0.9, z: 0 },
+    explode: 0.3,
     focus: 'enamel',
     bg: 'var(--surface-sunk)',
     ink: 'var(--ink)',
@@ -114,16 +100,15 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'dentin',
-    show: ['dentin'],
     at: 0.42,
     eyebrow: 'Beneath the surface',
     title: 'Dentin',
     body: 'Softer, and full of microscopic tubules. Once decay reaches here it moves fast, which is why a cleaning and a filling now costs a fraction of what waiting costs.',
     readout: { label: 'Checkup & clean', value: '₹800 / visit' },
-    camera: { x: -1.0, y: 0.7, z: 4.6 },
+    camera: { x: -1.3, y: 0.6, z: 6.2 },
     offset: { x: -0.7, y: 0 },
-    target: { x: 0, y: 0.5, z: 0 },
-    explode: 0,
+    target: { x: 0, y: 0.2, z: 0 },
+    explode: 0.55,
     focus: 'dentin',
     bg: '#2A2620',
     ink: '#F2ECE2',
@@ -132,16 +117,15 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'pulp',
-    show: ['pulp'],
     at: 0.56,
     eyebrow: 'The living core',
     title: 'Pulp',
     body: 'Nerves and blood vessels. This is where toothache comes from, and where a root canal goes. Modern anaesthesia means you feel pressure, not pain.',
     readout: { label: 'Pain-free treatment', value: 'Same day' },
-    camera: { x: 0.6, y: -0.2, z: 2.9 },
+    camera: { x: 0.9, y: -0.2, z: 6.4 },
     offset: { x: 0.7, y: 0 },
-    target: { x: 0, y: -0.2, z: 0 },
-    explode: 0,
+    target: { x: 0, y: -0.15, z: 0 },
+    explode: 0.78,
     focus: 'pulp',
     bg: '#1C1815',
     ink: '#F2ECE2',
@@ -150,16 +134,15 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'root',
-    show: ['root'],
     at: 0.7,
     eyebrow: 'The anchor',
     title: 'Root',
     body: 'Set into the jaw. When a tooth cannot be saved, an implant replaces the root itself, so the replacement bites, and lasts, like the original.',
     readout: { label: 'Dental implant', value: '₹25,000 / tooth' },
-    camera: { x: -0.9, y: -1.0, z: 4.8 },
+    camera: { x: -1.0, y: -1.2, z: 7.0 },
     offset: { x: -0.7, y: 0 },
-    target: { x: 0, y: -0.9, z: 0 },
-    explode: 0,
+    target: { x: 0, y: -1.6, z: 0 },
+    explode: 1,
     focus: 'root',
     bg: '#22201C',
     ink: '#F2ECE2',
@@ -168,7 +151,6 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'straighten',
-    show: ['whole'],
     at: 0.84,
     eyebrow: 'Position matters',
     title: 'Alignment',
@@ -177,7 +159,7 @@ export const BEATS: Beat[] = [
     camera: { x: 0.8, y: 0.6, z: 6.4 },
     offset: { x: 0.8, y: 0 },
     target: { x: 0, y: 0.3, z: 0 },
-    explode: 0,
+    explode: 0.35,
     focus: 'enamel',
     bg: 'var(--surface)',
     ink: 'var(--ink)',
@@ -185,7 +167,6 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'whole',
-    show: ['whole'],
     kind: 'cta',
     at: 1,
     eyebrow: 'Put back together',

@@ -32,6 +32,22 @@ export const NODE_MATCHERS: Record<LayerKey, string[]> = {
   root: ['root', 'radix', 'wurzel', 'apex'],
 }
 
+/**
+ * How far along y each layer travels at full explode.
+ *
+ * Deliberately short. Large separations made the pieces read as scattering
+ * debris rather than a tooth opening up - a sectioned anatomical diagram
+ * separates its layers just far enough to show what is underneath, and no
+ * further. These are roughly half what they were.
+ */
+const TRAVEL: Record<LayerKey, number> = {
+  whole: 0,
+  enamel: 0.5,
+  dentin: 0.14,
+  pulp: -0.02,
+  root: -0.42,
+}
+
 /** Per-layer surface treatment. Enamel is glossy and slightly translucent. */
 const LOOK: Record<LayerKey, { color: string; roughness: number; clearcoat: number }> = {
   whole: { color: '#FAF6EF', roughness: 0.13, clearcoat: 1 },
@@ -90,7 +106,7 @@ export function ToothModel({ src, progressRef, scale = 1 }: Props) {
     clone.scale.setScalar(normalise)
     clone.position.sub(centre.multiplyScalar(normalise))
 
-    const found: { mesh: THREE.Mesh; layer: LayerKey }[] = []
+    const found: { mesh: THREE.Mesh; layer: LayerKey; home: THREE.Vector3 }[] = []
     clone.traverse((o) => {
       if (!(o instanceof THREE.Mesh)) return
       o.castShadow = true
@@ -118,7 +134,7 @@ export function ToothModel({ src, progressRef, scale = 1 }: Props) {
           emissiveIntensity: 0,
           side: layer === 'pulp' ? THREE.DoubleSide : THREE.FrontSide,
         })
-        found.push({ mesh: o, layer })
+        found.push({ mesh: o, layer, home: o.position.clone() })
       } else {
         if (Array.isArray(o.material)) o.material = o.material.map((m) => m.clone())
         else o.material = o.material.clone()
@@ -128,14 +144,11 @@ export function ToothModel({ src, progressRef, scale = 1 }: Props) {
     return { root: clone, parts: found }
   }, [scene])
 
-  const LAYERS: LayerKey[] = ['whole', 'enamel', 'dentin', 'pulp', 'root']
-
   const anim = useRef({
+    explode: 0,
     spin: 0,
     offsetX: 0,
     offsetY: 0,
-    // The hero opens on the whole tooth, so it starts fully visible.
-    opacity: { whole: 1, enamel: 0, dentin: 0, pulp: 0, root: 0 } as Record<LayerKey, number>,
     glow: { whole: 0, enamel: 0, dentin: 0, pulp: 0, root: 0 } as Record<LayerKey, number>,
   })
 
@@ -154,25 +167,28 @@ export function ToothModel({ src, progressRef, scale = 1 }: Props) {
   useFrame((_, delta) => {
     const progress = progressRef.current ?? 0
     const beat = resolveBeat(progress)
-    const k = Math.min(delta * 2.6, 1)
+    const k = Math.min(delta * 3, 1)
     const a = anim.current
 
-    for (const key of LAYERS) {
-      const target = beat.show.includes(key) ? 1 : 0
-      a.opacity[key] += (target - a.opacity[key]) * k
+    a.explode += (beat.explode - a.explode) * k
+    for (const key of Object.keys(TRAVEL) as LayerKey[]) {
       a.glow[key] += ((beat.focus === key ? 1 : 0) - a.glow[key]) * k
     }
 
     if (group.current) {
       /**
-       * A slow constant turn so the scene is alive while the page is still.
-       * Scroll-only rotation leaves it frozen until someone moves, which reads
-       * as a static render rather than a live object.
+       * Two rotations, added.
+       *
+       * A slow constant turn so the hero is alive while the page is still -
+       * scroll-only rotation leaves it frozen until someone moves, which reads
+       * as a static render. It eases off as the sequence opens up, because
+       * once the layers are apart a spinning object is harder to read.
        */
-      a.spin += delta * 0.2
+      a.spin += delta * 0.22 * (1 - Math.min(a.explode * 1.6, 0.85))
       group.current.rotation.y = a.spin + progress * Math.PI * 1.1
-      group.current.rotation.z = Math.sin(progress * Math.PI) * 0.1
+      group.current.rotation.z = Math.sin(progress * Math.PI) * 0.12
 
+      // Slide the model between beats so it never sits under the copy.
       const off = beat.offset ?? { x: 0, y: 0 }
       a.offsetX += (off.x - a.offsetX) * k
       a.offsetY += (off.y - a.offsetY) * k
@@ -180,29 +196,46 @@ export function ToothModel({ src, progressRef, scale = 1 }: Props) {
       group.current.position.y = a.offsetY
     }
 
-    /**
-     * Crossfade between layers instead of separating them.
-     *
-     * Every previous attempt pulled an assembled tooth apart, and derived
-     * shells always read as scattering debris however carefully the geometry
-     * was built - open rims, coincident surfaces, pieces drifting out of
-     * frame. Showing one layer at a time sidesteps all of it: each frame is a
-     * single clean closed solid, and the transition is a dissolve rather than
-     * an explosion.
-     */
-    for (const { mesh, layer } of parts) {
-      const o = a.opacity[layer]
+    for (const { mesh, layer, home } of parts) {
+      mesh.position.y = home.y + a.explode * TRAVEL[layer]
       const mat = mesh.material as THREE.MeshPhysicalMaterial
-
-      mesh.visible = o > 0.004
-      mat.transparent = o < 0.995
-      mat.opacity = o
-      // Depth-write off while fading stops a half-faded shell from occluding
-      // the layer emerging behind it.
-      mat.depthWrite = o > 0.9
-
       if ('emissiveIntensity' in mat) {
-        mat.emissiveIntensity = ((layer === 'pulp' ? 0.15 : 0) + a.glow[layer] * 0.4) * o
+        mat.emissiveIntensity = (layer === 'pulp' ? 0.15 : 0) + a.glow[layer] * 0.5
+      }
+
+      /**
+       * The enamel is OPAQUE while the tooth is whole, and clarifies only as
+       * the layers separate.
+       *
+       * Capping the cut leaves internal cap faces sitting inside the assembly.
+       * A translucent enamel shows them straight through, which draws a
+       * horizontal line across an intact tooth and reads as a crack. Once the
+       * halves have actually moved apart those same faces are the cut surfaces
+       * you want to see, so the transparency follows explode rather than being
+       * a constant.
+       */
+      /**
+       * Crossfade whole -> parts. The uncut shell carries the closed state so
+       * no seam or protrusion can show while the tooth is meant to be intact;
+       * the sectioned layers take over as soon as it starts opening.
+       */
+      const opened = Math.min(a.explode * 3.2, 1)
+      if (layer === 'whole') {
+        mat.transparent = opened > 0.01
+        mat.opacity = 1 - opened
+        mesh.visible = opened < 0.995
+      } else {
+        mat.transparent = opened < 0.99
+        mat.opacity = opened
+        mesh.visible = opened > 0.005
+      }
+
+      if (layer === 'enamel' && 'transmission' in mat) {
+        const open = Math.min(a.explode * 2.2, 1)
+        mat.transmission = open * 0.55
+        mat.opacity = 1 - open * 0.25
+        mat.transparent = open > 0.01
+        mat.thickness = 1.1
       }
     }
   })
