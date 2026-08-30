@@ -106,13 +106,15 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
 
   return (
     <div
-      className={`pointer-events-none absolute inset-y-0 flex items-center overflow-hidden transition-[left,right] duration-[1200ms] ease-out ${
-        copyOnLeft ? 'justify-end' : 'justify-start'
-      }`}
+      className="pointer-events-none absolute inset-y-0 flex items-center justify-center overflow-hidden transition-[left,right] duration-[1200ms] ease-out"
       style={{
-        // Half the viewport, inset from both the copy and the outer edge.
-        left: copyOnLeft ? '52%' : '4%',
-        right: copyOnLeft ? '4%' : '52%',
+        /*
+          The half opposite the copy, with the subject CENTRED in it.
+          Pushing it to the outer edge instead left a large dead gap in the
+          middle of the page and the image hugging the browser frame.
+        */
+        left: copyOnLeft ? '47%' : '8%',
+        right: copyOnLeft ? '8%' : '47%',
       }}
     >
       <div
