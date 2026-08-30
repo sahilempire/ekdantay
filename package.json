@@ -1,14 +1,60 @@
 {
   "name": "ekdantay-dental-clinic",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Ekdantay Dental Clinic Website",
-  "main": "index.html",
+  "private": true,
   "scripts": {
-    "build": "echo 'Static site - no build needed'",
-    "start": "echo 'Static site'"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test"
   },
-  "keywords": ["dental", "clinic", "healthcare"],
+  "keywords": [
+    "dental",
+    "clinic",
+    "healthcare"
+  ],
   "author": "Ekdantay Dental Clinic",
-  "license": "MIT"
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@10.12.4",
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.23",
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
+    "@vercel/analytics": "^2.0.1",
+    "embla-carousel-react": "^8.6.0",
+    "lenis": "^1.3.26",
+    "lucide-react": "^1.37.0",
+    "motion": "^13.1.1",
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.4.2",
+    "@gltf-transform/core": "^4.4.2",
+    "@gltf-transform/extensions": "^4.4.2",
+    "@gltf-transform/functions": "^4.4.2",
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.6",
+    "@types/node": "^26.4.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@types/three": "^0.185.4",
+    "@vitejs/plugin-react": "^6.1.1",
+    "jsdom": "^30.0.1",
+    "meshoptimizer": "^1.2.0",
+    "sharp": "^0.35.4",
+    "tailwindcss": "4.3.3",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  }
 }
-
