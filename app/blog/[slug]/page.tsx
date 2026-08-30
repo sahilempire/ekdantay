@@ -25,7 +25,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
   return (
     <main id="main">
-      <PageHero title="Blog" crumb="Blog" />
+      <PageHero title="Blog" crumb="Blog" headingLevel={2} />
       <Container className="py-20">
         <article className="mx-auto max-w-2xl">
           <p className="text-xs text-muted">
