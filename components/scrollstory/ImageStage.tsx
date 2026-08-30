@@ -49,7 +49,7 @@ const SCENES: Record<string, Scene> = {
   pulp: { layered: true, spread: 0.85, focus: 'pulp', scale: 1.1, alt: 'Tooth layers, pulp and nerve highlighted' },
   root: { layered: true, spread: 1, focus: 'root', scale: 1.05, alt: 'Tooth layers, roots highlighted' },
   straighten: { image: '/images/sequence/braces.webp', scale: 1, alt: 'Lower arch fitted with orthodontic braces' },
-  whole: { image: '/images/sequence/whole.webp', scale: 1, alt: 'A whole, intact molar tooth' },
+  whole: { image: '/images/sequence/final.webp', scale: 1, alt: 'A whole, intact molar tooth' },
 }
 
 /**
@@ -94,19 +94,29 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
   const focused = scene.focus
     ? layers.layers.find((l) => l.name === scene.focus)
     : undefined
-  const focusZoom = focused ? 1.55 : 1
+  const focusZoom = focused ? 1.28 : 1
   const focusShiftY = focused
     ? -(placeTop(focused, scene.spread ?? 0) + focused.height / 2 - 0.5) * 100
     : 0
 
-  // Beats already declare which side the copy sits on and how far the subject
-  // should move; reuse that so the image never lands under the text.
-  const shiftX = (beat.offset?.x ?? 0) * 17
+  // The copy sits on one side; the subject takes the other. Giving it its own
+  // half makes the separation structural rather than a tuned nudge that has to
+  // be re-guessed for every viewport width.
+  const copyOnLeft = beat.side !== 'right'
 
   return (
-    <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+    <div
+      className={`pointer-events-none absolute inset-y-0 flex items-center overflow-hidden transition-[left,right] duration-[1200ms] ease-out ${
+        copyOnLeft ? 'justify-end' : 'justify-start'
+      }`}
+      style={{
+        // Half the viewport, inset from both the copy and the outer edge.
+        left: copyOnLeft ? '52%' : '4%',
+        right: copyOnLeft ? '4%' : '52%',
+      }}
+    >
       <div
-        className="relative h-[78%] transition-transform duration-[1200ms] ease-out"
+        className="relative h-[62%] max-h-[62vh] transition-transform duration-[1200ms] ease-out"
         style={{
           aspectRatio: FRAME_RATIO,
           /*
@@ -118,7 +128,6 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
             screen - the camera has to follow the subject, not the object.
           */
           transform: [
-            `translateX(${shiftX}%)`,
             `translateY(${focusShiftY}%)`,
             `scale(${scene.scale * focusZoom})`,
           ].join(' '),
