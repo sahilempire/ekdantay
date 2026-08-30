@@ -14,6 +14,22 @@ import { clinic } from '@/content/clinic'
 import { hoursSummary } from '@/lib/hours'
 
 const Scene = dynamic(() => import('./Scene'), { ssr: false })
+const SketchfabStage = dynamic(
+  () => import('./SketchfabStage').then((m) => m.SketchfabStage),
+  { ssr: false },
+)
+
+/**
+ * Which 3D source drives the stage.
+ *
+ * 'sketchfab' embeds a properly modelled four-layer tooth and drives it
+ * through the Viewer API. 'derived' uses our own GLB, whose layers are
+ * offsets of a single scanned surface.
+ *
+ * Kept as a switch rather than a replacement so the two can be compared
+ * against the same beats before one is committed to.
+ */
+const STAGE: 'sketchfab' | 'derived' = 'sketchfab'
 
 /**
  * The whole top of the page: one pinned 3D scene the camera flies through,
@@ -122,7 +138,14 @@ export function ScrollStory() {
         animate={{ backgroundColor: beat.bg }}
         transition={{ duration: 0.8, ease: 'easeInOut' }}
       >
-        <div className="absolute inset-0">{ready && <Scene progressRef={progress} />}</div>
+        <div className="absolute inset-0">
+          {ready &&
+            (STAGE === 'sketchfab' ? (
+              <SketchfabStage progressRef={progress} />
+            ) : (
+              <Scene progressRef={progress} />
+            ))}
+        </div>
 
         {/*
           Directional scrim on the copy side.

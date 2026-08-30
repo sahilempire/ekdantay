@@ -9,6 +9,8 @@
  *
  * `at` is normalised scroll progress (0-1) across the pinned section.
  */
+export type LayerName = 'enamel' | 'dentin' | 'pulp' | 'root'
+
 export interface Beat {
   id: string
   at: number
@@ -27,6 +29,16 @@ export interface Beat {
   target?: { x: number; y: number; z: number }
   /** How far the tooth's parts separate. 0 = whole, 1 = fully exploded. */
   explode: number
+  /**
+   * Layers to hide at this beat, peeling the tooth open from the outside in.
+   *
+   * Used by the embedded-model stage, where the layers are properly modelled
+   * and can be toggled. Peeling reads far better than isolating a single
+   * layer: hiding the enamel to reveal the dentin beneath keeps the object
+   * legible as a tooth, where showing dentin alone leaves it floating with no
+   * context.
+   */
+  hideLayers?: LayerName[]
   /** Which layer glows to draw the eye. */
   focus?: 'enamel' | 'dentin' | 'pulp' | 'root' | null
   /**
@@ -84,6 +96,7 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'enamel',
+    hideLayers: [],
     at: 0.28,
     eyebrow: 'The outer shell',
     title: 'Enamel',
@@ -100,6 +113,7 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'dentin',
+    hideLayers: ['enamel'],
     at: 0.42,
     eyebrow: 'Beneath the surface',
     title: 'Dentin',
@@ -117,6 +131,7 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'pulp',
+    hideLayers: ['enamel', 'dentin'],
     at: 0.56,
     eyebrow: 'The living core',
     title: 'Pulp',
@@ -134,6 +149,7 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'root',
+    hideLayers: ['enamel', 'dentin'],
     at: 0.7,
     eyebrow: 'The anchor',
     title: 'Root',
@@ -151,6 +167,7 @@ export const BEATS: Beat[] = [
   },
   {
     id: 'straighten',
+    hideLayers: [],
     at: 0.84,
     eyebrow: 'Position matters',
     title: 'Alignment',
