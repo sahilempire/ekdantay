@@ -142,7 +142,7 @@ test.describe('mobile', () => {
     // lighter scene on weak hardware rather than no scene. This asserts the
     // canvas actually mounts on a touch device.
     await page.goto('/', { waitUntil: 'networkidle' })
-    const story = page.locator('section[aria-label="How a tooth works"]')
+    const story = page.locator('section[aria-label="Modern dentistry, explained"]')
     await expect(story).toHaveCount(1)
 
     await story.scrollIntoViewIfNeeded()
@@ -152,8 +152,8 @@ test.describe('mobile', () => {
 
   test('the scroll story copy is reachable without a pointer', async ({ page }) => {
     await page.goto('/')
-    const story = page.locator('section[aria-label="How a tooth works"]')
-    await expect(story).toContainText('Your tooth, explained')
+    const story = page.locator('section[aria-label="Modern dentistry, explained"]')
+    await expect(story).toContainText('Modern Dentistry')
   })
 })
 

@@ -266,3 +266,28 @@ button, input, select, textarea {
     scroll-behavior: auto !important;
   }
 }
+
+/* ==========================================================================
+   Stage-aware chrome
+
+   The scroll sequence darkens its ground through the middle beats. The header
+   is sticky above it, so without this it sits in light mode over a dark scene.
+   ScrollStory writes data-stage-dark on <html>; these rules follow it.
+   ========================================================================== */
+
+:root[data-stage-dark='true'] .stage-aware {
+  background: transparent !important;
+  border-color: transparent !important;
+  backdrop-filter: none !important;
+  color: #F2ECE2;
+}
+
+:root[data-stage-dark='true'] .stage-aware a,
+:root[data-stage-dark='true'] .stage-aware button {
+  color: #F2ECE2;
+}
+
+/* The booking CTA keeps its accent fill in both grounds. */
+:root[data-stage-dark='true'] .stage-aware .bg-accent {
+  color: var(--on-accent);
+}

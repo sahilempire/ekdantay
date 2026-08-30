@@ -32,9 +32,9 @@ export function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-colors duration-300 ${
+      className={`sticky top-0 z-50 transition-colors duration-500 ${
         scrolled ? 'border-b border-line bg-paper/85 backdrop-blur-md' : 'bg-transparent'
-      }`}
+      } ${'stage-aware'}`}
     >
       <Container>
         <div className="flex h-18 items-center justify-between gap-4 py-4">

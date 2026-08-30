@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
-import { BEATS, type Beat } from './beats'
+import { resolveBeat } from './beats'
 
 /**
  * Loads a real anatomical tooth model and drives the exploded-view sequence.
@@ -51,12 +51,6 @@ function classify(name: string): LayerKey | null {
     if (NODE_MATCHERS[key].some((alias) => n.includes(alias))) return key
   }
   return null
-}
-
-function resolveBeat(p: number): Beat {
-  let current = BEATS[0]
-  for (const b of BEATS) if (p >= b.at - 0.001) current = b
-  return current
 }
 
 interface Props {

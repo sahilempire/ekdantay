@@ -3,7 +3,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { BEATS, type Beat } from './beats'
+import { resolveBeat } from './beats'
 
 /**
  * A procedurally generated molar, built as four separable anatomical layers.
@@ -85,12 +85,6 @@ function useRoot() {
     g.translate(0, -0.64, 0)
     return g
   }, [])
-}
-
-function resolveBeat(p: number): Beat {
-  let current = BEATS[0]
-  for (const b of BEATS) if (p >= b.at - 0.001) current = b
-  return current
 }
 
 type LayerKey = 'enamel' | 'dentin' | 'pulp' | 'root'

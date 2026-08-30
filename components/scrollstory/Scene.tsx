@@ -6,20 +6,13 @@ import { ContactShadows } from '@react-three/drei'
 import * as THREE from 'three'
 import { Tooth } from './Tooth'
 import { ToothModel } from './ToothModel'
-import { BEATS, type Beat } from './beats'
+import { resolveBeat } from './beats'
 
 /**
  * Set to a path under /public once we have a licensed anatomical model, e.g.
  * '/models/tooth.glb'. Null keeps the procedural fallback.
  */
 const MODEL_SRC: string | null = '/models/tooth.glb'
-
-/** Which beat a given scroll progress belongs to, and the blend toward the next. */
-function resolveBeat(p: number): Beat {
-  let current = BEATS[0]
-  for (const b of BEATS) if (p >= b.at - 0.001) current = b
-  return current
-}
 
 function Rig({ progressRef }: { progressRef: React.RefObject<number> }) {
   const { camera } = useThree()

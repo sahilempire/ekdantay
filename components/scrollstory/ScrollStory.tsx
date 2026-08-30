@@ -3,29 +3,36 @@
 import { useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { motion, useScroll } from 'motion/react'
-import { ChevronDown } from 'lucide-react'
-import { BEATS } from './beats'
+import { ChevronDown, Phone } from 'lucide-react'
+import { BEATS, resolveBeat, resolveBeatIndex } from './beats'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { Container } from '@/components/ui/Container'
 import { ButtonLink } from '@/components/ui/Button'
+import { SplitText } from '@/components/motion/SplitText'
+import { Magnetic } from '@/components/motion/Magnetic'
+import { clinic } from '@/content/clinic'
+import { hoursSummary } from '@/lib/hours'
 
 const Scene = dynamic(() => import('./Scene'), { ssr: false })
 
 /**
- * The scroll sequence: one pinned 3D scene the camera flies through, with a
- * copy beat and a technical readout per stop. Modelled on oryzo.ai.
+ * The whole top of the page: one pinned 3D scene the camera flies through,
+ * with the hero as its opening beat rather than a separate section.
  *
- * Two decisions worth naming:
+ * Three decisions worth naming:
  *
- * Scroll progress is written to a *ref*, not state. React state here would
- * re-render the tree on every scroll event; the ref feeds useFrame directly
- * and the canvas never re-renders at all.
+ * Scroll progress is written to a REF, not state. React state here would
+ * reconcile the tree on every scroll event; the ref feeds useFrame directly
+ * and the canvas never re-renders. Only the copy layer is state-driven, and
+ * only when the beat index actually changes.
  *
- * It runs on phones. The 2026 scrollytelling guidance is explicit that
- * desktop-only scroll experiences are obsolete, and the correct pattern is
- * device-tier detection serving a lighter scene - not switching it off. Phones
- * get a lower pixel ratio and no shadows, and reduced-motion gets a static
- * stacked layout with all the same copy.
+ * The ground colour transitions per beat. That shifting ground is most of why
+ * a scroll sequence reads as cinematic rather than as a long page, and it is
+ * cheap - one animated background on the sticky container.
+ *
+ * It runs on phones. The 2026 guidance is explicit that desktop-only scroll
+ * experiences are obsolete and the right pattern is device-tier detection
+ * serving a lighter scene, which is what Scene does.
  */
 export function ScrollStory() {
   const wrap = useRef<HTMLDivElement>(null)
@@ -43,23 +50,44 @@ export function ScrollStory() {
     setReady(true)
     return scrollYProgress.on('change', (v) => {
       progress.current = v
-      // Only the copy layer is React-driven, and only when the beat changes.
-      let next = 0
-      BEATS.forEach((b, i) => {
-        if (v >= b.at - 0.001) next = i
-      })
+      const next = resolveBeatIndex(v)
       setActive((prev) => (prev === next ? prev : next))
+      // Publish the ground's darkness so fixed chrome above the stage - the
+      // sticky header - can invert with it, instead of sitting in light mode
+      // over a dark beat.
+      document.documentElement.dataset.stageDark = BEATS[next].dark ? 'true' : 'false'
     })
   }, [scrollYProgress])
 
-  // Reduced motion: the same content, stacked and static.
+  // Clear it on unmount so other routes never inherit a dark header.
+  useEffect(
+    () => () => {
+      delete document.documentElement.dataset.stageDark
+    },
+    [],
+  )
+
+  // Reduced motion: same content, stacked and static, no canvas at all.
   if (reduced) {
     return (
-      <section className="border-y border-line bg-surface py-20">
+      <section className="py-20">
         <Container>
-          <div className="grid gap-10 sm:grid-cols-2">
-            {BEATS.map((b) => (
-              <div key={b.id} className="rounded-2xl border border-line bg-paper p-8">
+          <div className="mb-16 max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
+              {BEATS[0].eyebrow}
+            </p>
+            <h1 className="mt-4 text-4xl sm:text-5xl">{BEATS[0].title}</h1>
+            <p className="mt-5 text-lg text-ink-soft">{BEATS[0].body}</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <ButtonLink href="/contact" size="lg">Book Appointment</ButtonLink>
+              <ButtonLink href={clinic.phone.tel} variant="outline" size="lg">
+                {clinic.phone.display}
+              </ButtonLink>
+            </div>
+          </div>
+          <div className="grid gap-8 sm:grid-cols-2">
+            {BEATS.filter((b) => !b.kind).map((b) => (
+              <div key={b.id} className="rounded-2xl border border-line bg-surface p-8">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
                   {b.eyebrow}
                 </p>
@@ -80,46 +108,63 @@ export function ScrollStory() {
   }
 
   const beat = BEATS[active]
+  const alignRight = beat.side === 'right'
 
   return (
     <section
       ref={wrap}
-      aria-label="How a tooth works"
-      // Each beat gets a viewport of scroll to breathe in.
+      aria-label="Modern dentistry, explained"
       style={{ height: `${BEATS.length * 100}vh` }}
       className="relative"
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
-        {/* the 3D stage, full bleed */}
+      <motion.div
+        className="sticky top-0 h-screen w-full overflow-hidden"
+        animate={{ backgroundColor: beat.bg }}
+        transition={{ duration: 0.8, ease: 'easeInOut' }}
+      >
         <div className="absolute inset-0">{ready && <Scene progressRef={progress} />}</div>
 
-        {/* vignette keeps type legible over the scene without a flat scrim */}
+        {/* Keeps type legible over the scene without a flat scrim. */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            background:
-              'radial-gradient(120% 90% at 70% 50%, transparent 30%, var(--paper) 100%)',
+            background: alignRight
+              ? 'radial-gradient(110% 90% at 25% 50%, transparent 28%, color-mix(in srgb, currentColor 0%, transparent) 100%)'
+              : undefined,
           }}
         />
 
-        {/* copy layer */}
         <Container className="pointer-events-none relative flex h-screen items-center">
           <motion.div
             key={beat.id}
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-md"
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            style={{ color: beat.ink }}
+            className={`max-w-md ${alignRight ? 'ml-auto text-right' : ''}`}
           >
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
               {beat.eyebrow}
             </p>
-            <h2 className="mt-4 text-4xl sm:text-5xl">{beat.title}</h2>
-            <p className="mt-5 text-ink-soft">{beat.body}</p>
+
+            {beat.kind === 'hero' ? (
+              <SplitText as="h1" className="mt-4 text-4xl sm:text-5xl" delay={0.2}>
+                {beat.title}
+              </SplitText>
+            ) : (
+              <h2 className="mt-4 text-4xl sm:text-5xl">{beat.title}</h2>
+            )}
+
+            <p className="mt-5 opacity-80">{beat.body}</p>
 
             {beat.readout && (
-              <div className="mt-8 inline-flex items-baseline gap-4 rounded-xl border border-line bg-surface/80 px-5 py-3 backdrop-blur-sm">
-                <span className="text-xs uppercase tracking-[0.12em] text-muted">
+              <div
+                className={`mt-8 inline-flex items-baseline gap-4 rounded-xl border px-5 py-3 backdrop-blur-sm ${
+                  alignRight ? 'flex-row-reverse' : ''
+                }`}
+                style={{ borderColor: 'color-mix(in srgb, currentColor 22%, transparent)' }}
+              >
+                <span className="text-xs uppercase tracking-[0.12em] opacity-60">
                   {beat.readout.label}
                 </span>
                 <span className="tabular font-display text-lg text-accent">
@@ -128,37 +173,66 @@ export function ScrollStory() {
               </div>
             )}
 
-            {beat.id === 'whole' && (
-              <div className="pointer-events-auto mt-8 flex flex-wrap gap-3">
-                <ButtonLink href="/contact" size="lg">Book Appointment</ButtonLink>
-                <ButtonLink href="/services" variant="outline" size="lg">See all treatments</ButtonLink>
+            {(beat.kind === 'hero' || beat.kind === 'cta') && (
+              <div
+                className={`pointer-events-auto mt-8 flex flex-wrap gap-3 ${
+                  alignRight ? 'justify-end' : ''
+                }`}
+              >
+                <Magnetic>
+                  <ButtonLink href="/contact" size="lg">Book Appointment</ButtonLink>
+                </Magnetic>
+                <ButtonLink href={clinic.phone.tel} variant="outline" size="lg">
+                  <Phone size={16} aria-hidden />
+                  {clinic.phone.display}
+                </ButtonLink>
               </div>
+            )}
+
+            {beat.kind === 'hero' && (
+              <dl className="mt-10 flex flex-wrap gap-x-10 gap-y-4 border-t pt-8 text-sm opacity-80"
+                  style={{ borderColor: 'color-mix(in srgb, currentColor 18%, transparent)' }}>
+                {hoursSummary().map(({ label, value }) => (
+                  <div key={label}>
+                    <dt className="opacity-60">{label}</dt>
+                    <dd className="tabular">{value}</dd>
+                  </div>
+                ))}
+                <div>
+                  <dt className="opacity-60">Emergency</dt>
+                  <dd>24/7</dd>
+                </div>
+              </dl>
             )}
           </motion.div>
         </Container>
 
-        {/* beat rail - shows where you are in the sequence */}
+        {/* Beat rail — where you are in the sequence. */}
         <div className="pointer-events-none absolute right-6 top-1/2 hidden -translate-y-1/2 flex-col gap-3 sm:flex">
           {BEATS.map((b, i) => (
-            <span
+            <motion.span
               key={b.id}
-              className={`h-6 w-px transition-colors duration-500 ${
-                i === active ? 'bg-accent' : 'bg-line'
-              }`}
+              className="w-px"
+              animate={{
+                height: i === active ? 28 : 14,
+                backgroundColor: i === active ? 'var(--accent)' : beat.ink,
+                opacity: i === active ? 1 : 0.3,
+              }}
+              transition={{ duration: 0.4 }}
             />
           ))}
         </div>
 
-        {/* scroll affordance, only on the first beat */}
         <motion.div
           animate={{ opacity: active === 0 ? 1 : 0 }}
           transition={{ duration: 0.4 }}
-          className="pointer-events-none absolute bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-2 text-xs uppercase tracking-[0.14em] text-muted"
+          style={{ color: beat.ink }}
+          className="pointer-events-none absolute bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-2 text-xs uppercase tracking-[0.14em] opacity-60"
         >
           <ChevronDown size={15} className="animate-bounce" aria-hidden />
           Scroll to continue
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   )
 }

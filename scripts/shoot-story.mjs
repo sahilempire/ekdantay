@@ -9,7 +9,7 @@ await page.waitForTimeout(3000)
 
 // The story section starts after the hero; walk through its whole range.
 const box = await page.evaluate(() => {
-  const s = document.querySelector('section[aria-label="How a tooth works"]')
+  const s = document.querySelector('section[aria-label="Modern dentistry, explained"]')
   const r = s.getBoundingClientRect()
   return { top: r.top + window.scrollY, height: s.offsetHeight }
 })
