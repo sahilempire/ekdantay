@@ -301,8 +301,18 @@ button, input, select, textarea {
    320px viewport in half gives two unusable columns.
    ========================================================================== */
 
+/*
+  Phones stack rather than overlap: the subject takes the upper band, the copy
+  sits beneath it. Laying them on top of each other meant the image had to be
+  dimmed to keep text legible, and three dimming effects compounded - container
+  opacity, unfocused-layer opacity, and the scrim - until the layers were
+  invisible on the dark beats.
+*/
 .stage-area {
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 46%;
 }
 
 @media (min-width: 768px) {
@@ -322,5 +332,10 @@ button, input, select, textarea {
   }
   .stage-copy .stage-actions {
     justify-content: flex-start !important;
+  }
+  /* Sit below the subject's band rather than centred over it. */
+  .stage-copy-wrap {
+    align-items: flex-end !important;
+    padding-bottom: 8vh;
   }
 }

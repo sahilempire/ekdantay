@@ -169,9 +169,10 @@ export function ScrollStory() {
           className="pointer-events-none absolute inset-0"
           animate={{
             background: isNarrow
-              ? // Phones put the subject BEHIND the copy, so the scrim has to
-                // run vertically or the text sits on bare image.
-                `linear-gradient(180deg, ${beat.bg} 0%, ${beat.bg}cc 45%, ${beat.bg} 100%)`
+              ? // Phones stack the subject above the copy, so only a soft
+                // fade where the two meet is needed - a heavy scrim here was
+                // what made the layers disappear on the dark beats.
+                `linear-gradient(180deg, transparent 0%, transparent 34%, ${beat.bg} 52%)`
               : alignRight
                 ? `linear-gradient(270deg, ${beat.bg} 0%, ${beat.bg} 22%, transparent 62%)`
                 : `linear-gradient(90deg, ${beat.bg} 0%, ${beat.bg} 22%, transparent 62%)`,
@@ -179,7 +180,7 @@ export function ScrollStory() {
           transition={{ duration: 0.8, ease: 'easeInOut' }}
         />
 
-        <Container className="pointer-events-none relative flex h-screen items-center">
+        <Container className="stage-copy-wrap pointer-events-none relative flex h-screen items-center">
           <motion.div
             key={beat.id}
             initial={{ opacity: 0, y: 22 }}

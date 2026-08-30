@@ -132,7 +132,7 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
       }
     >
       <div
-        className="relative h-[42%] max-h-[42vh] opacity-55 transition-transform duration-[1200ms] ease-out md:h-[74%] md:max-h-[74vh] md:opacity-100"
+        className="relative h-full max-h-full transition-transform duration-[1200ms] ease-out md:h-[74%] md:max-h-[74vh]"
         style={{
           aspectRatio: FRAME_RATIO,
           /*
@@ -194,7 +194,7 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
                 top: `${top * 100}%`,
                 width: `${layer.width * 100}%`,
                 height: `${layer.height * 100}%`,
-                opacity: shown ? (isFocus ? 1 : 0.42) : 0,
+                opacity: shown ? (isFocus ? 1 : 0.5) : 0,
                 transform: `scale(${isFocus ? 1.06 : 1})`,
                 zIndex: isFocus ? 2 : 1,
               }}
