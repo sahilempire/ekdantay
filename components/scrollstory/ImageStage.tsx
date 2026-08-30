@@ -45,10 +45,14 @@ const SCENES: Record<string, Scene> = {
   hero: { image: '/images/sequence/skull.webp', scale: 1, alt: 'Human skull showing the teeth' },
   intro: { image: '/images/sequence/jaw.webp', scale: 1.2, alt: 'Lower jaw with a full arch of teeth' },
   enamel: { layered: true, spread: 0.15, focus: 'enamel', scale: 1.1, alt: 'Tooth layers, enamel highlighted' },
-  dentin: { layered: true, spread: 0.55, focus: 'dentin', scale: 1.1, alt: 'Tooth layers, dentin highlighted' },
+  whitening: { image: '/images/sequence/whitening.webp', scale: 1, alt: 'A tooth stained on one side and whitened on the other' },
+  // The decay cross-section, not the layer stack: this beat's copy is about
+  // decay reaching the dentin, and the image shows exactly that.
+  dentin: { image: '/images/sequence/decay.webp', scale: 1.05, alt: 'Cross-section of a tooth with decay reaching the dentin' },
   pulp: { layered: true, spread: 0.85, focus: 'pulp', scale: 1.1, alt: 'Tooth layers, pulp and nerve highlighted' },
   root: { layered: true, spread: 1, focus: 'root', scale: 1.05, alt: 'Tooth layers, roots highlighted' },
   straighten: { image: '/images/sequence/braces.webp', scale: 1, alt: 'Lower arch fitted with orthodontic braces' },
+  emergency: { image: '/images/sequence/cracked.webp', scale: 1, alt: 'A molar with a visible crack running down the crown' },
   whole: { image: '/images/sequence/final.webp', scale: 1, alt: 'A whole, intact molar tooth' },
 }
 
@@ -150,7 +154,7 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
         }}
       >
         {/* Full-frame scenes: skull, jaw, braces, whole tooth. */}
-        {(['hero', 'intro', 'straighten', 'whole'] as const).map((id) => {
+        {(['hero', 'intro', 'whitening', 'dentin', 'straighten', 'emergency', 'whole'] as const).map((id) => {
           const s = SCENES[id]
           if (!s.image) return null
           const active = beatId === id
