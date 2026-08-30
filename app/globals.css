@@ -291,3 +291,36 @@ button, input, select, textarea {
 :root[data-stage-dark='true'] .stage-aware .bg-accent {
   color: var(--on-accent);
 }
+
+/* ==========================================================================
+   Scroll stage layout
+
+   On a wide screen the subject takes the half opposite the copy. On a phone
+   there is no room to sit two things side by side, so it goes full bleed
+   behind the copy instead, with a vertical scrim for legibility. Splitting a
+   320px viewport in half gives two unusable columns.
+   ========================================================================== */
+
+.stage-area {
+  inset: 0;
+}
+
+@media (min-width: 768px) {
+  .stage-area {
+    inset-block: 0;
+    left: var(--stage-left);
+    right: var(--stage-right);
+  }
+}
+
+/* Copy stays left-aligned on phones; alternating sides needs width to read. */
+@media (max-width: 767px) {
+  .stage-copy {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    text-align: left !important;
+  }
+  .stage-copy .stage-actions {
+    justify-content: flex-start !important;
+  }
+}

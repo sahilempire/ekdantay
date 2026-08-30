@@ -54,6 +54,17 @@ export function ScrollStory() {
   const reduced = usePrefersReducedMotion()
   const [active, setActive] = useState(0)
   const [ready, setReady] = useState(false)
+  const [isNarrow, setIsNarrow] = useState(false)
+
+  // The stage sits beside the copy on wide screens and behind it on phones,
+  // and the scrim has to follow.
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    setIsNarrow(mq.matches)
+    const onChange = (e: MediaQueryListEvent) => setIsNarrow(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   const { scrollYProgress } = useScroll({
     target: wrap,
@@ -157,9 +168,13 @@ export function ScrollStory() {
         <motion.div
           className="pointer-events-none absolute inset-0"
           animate={{
-            background: alignRight
-              ? `linear-gradient(270deg, ${beat.bg} 0%, ${beat.bg} 22%, transparent 62%)`
-              : `linear-gradient(90deg, ${beat.bg} 0%, ${beat.bg} 22%, transparent 62%)`,
+            background: isNarrow
+              ? // Phones put the subject BEHIND the copy, so the scrim has to
+                // run vertically or the text sits on bare image.
+                `linear-gradient(180deg, ${beat.bg} 0%, ${beat.bg}cc 45%, ${beat.bg} 100%)`
+              : alignRight
+                ? `linear-gradient(270deg, ${beat.bg} 0%, ${beat.bg} 22%, transparent 62%)`
+                : `linear-gradient(90deg, ${beat.bg} 0%, ${beat.bg} 22%, transparent 62%)`,
           }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
         />
@@ -171,18 +186,18 @@ export function ScrollStory() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             style={{ color: beat.ink }}
-            className={`max-w-md ${alignRight ? 'ml-auto text-right' : ''}`}
+            className={`stage-copy max-w-md ${alignRight ? 'md:ml-auto md:text-right' : ''}`}
           >
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
               {beat.eyebrow}
             </p>
 
             {beat.kind === 'hero' ? (
-              <SplitText as="h1" className="mt-4 text-4xl sm:text-5xl" delay={0.2}>
+              <SplitText as="h1" className="mt-4 text-3xl sm:text-4xl lg:text-5xl" delay={0.2}>
                 {beat.title}
               </SplitText>
             ) : (
-              <h2 className="mt-4 text-4xl sm:text-5xl">{beat.title}</h2>
+              <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl">{beat.title}</h2>
             )}
 
             <p className="mt-5 opacity-80">{beat.body}</p>
@@ -205,8 +220,8 @@ export function ScrollStory() {
 
             {(beat.kind === 'hero' || beat.kind === 'cta') && (
               <div
-                className={`pointer-events-auto mt-8 flex flex-wrap gap-3 ${
-                  alignRight ? 'justify-end' : ''
+                className={`stage-actions pointer-events-auto mt-8 flex flex-wrap gap-3 ${
+                  alignRight ? 'md:justify-end' : ''
                 }`}
               >
                 <Magnetic>
@@ -220,7 +235,7 @@ export function ScrollStory() {
             )}
 
             {beat.kind === 'hero' && (
-              <dl className="mt-10 flex flex-wrap gap-x-10 gap-y-4 border-t pt-8 text-sm opacity-80"
+              <dl className="mt-10 hidden flex-wrap gap-x-10 gap-y-4 border-t pt-8 text-sm opacity-80 sm:flex"
                   style={{ borderColor: 'color-mix(in srgb, currentColor 18%, transparent)' }}>
                 {hoursSummary().map(({ label, value }) => (
                   <div key={label}>
@@ -257,7 +272,7 @@ export function ScrollStory() {
           animate={{ opacity: active === 0 ? 1 : 0 }}
           transition={{ duration: 0.4 }}
           style={{ color: beat.ink }}
-          className="pointer-events-none absolute bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-2 text-xs uppercase tracking-[0.14em] opacity-60"
+          className="pointer-events-none absolute bottom-8 left-1/2 hidden -translate-x-1/2 items-center gap-2 text-xs uppercase tracking-[0.14em] opacity-60 sm:flex"
         >
           <ChevronDown size={15} className="animate-bounce" aria-hidden />
           Scroll to continue

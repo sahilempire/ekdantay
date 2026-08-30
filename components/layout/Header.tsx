@@ -72,9 +72,16 @@ export function Header() {
               <span className="tabular">{clinic.phone.display}</span>
             </a>
 
-            <ButtonLink href="/contact" className="hidden sm:inline-flex">
-              Book Appointment
-            </ButtonLink>
+            {/*
+              Wrapped rather than given `hidden sm:inline-flex` directly.
+              Button's base class sets `inline-flex`, and Tailwind resolves
+              conflicting display utilities by stylesheet order, not by the
+              order they appear in the class attribute - so `hidden` lost and
+              the button rendered on phones, wrapping to two lines.
+            */}
+            <span className="hidden sm:inline-flex">
+              <ButtonLink href="/contact">Book Appointment</ButtonLink>
+            </span>
 
             <button
               type="button"

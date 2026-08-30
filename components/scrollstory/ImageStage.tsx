@@ -106,19 +106,22 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
 
   return (
     <div
-      className="pointer-events-none absolute inset-y-0 flex items-center justify-center overflow-hidden transition-[left,right] duration-[1200ms] ease-out"
-      style={{
-        /*
-          The half opposite the copy, with the subject CENTRED in it.
-          Pushing it to the outer edge instead left a large dead gap in the
-          middle of the page and the image hugging the browser frame.
-        */
-        left: copyOnLeft ? '47%' : '8%',
-        right: copyOnLeft ? '8%' : '47%',
-      }}
+      className="stage-area pointer-events-none absolute flex items-center justify-center overflow-hidden transition-[left,right] duration-[1200ms] ease-out"
+      style={
+        {
+          /*
+            The half opposite the copy, with the subject CENTRED in it. The
+            custom properties are consumed only above the md breakpoint - on a
+            phone .stage-area goes full bleed, because splitting a 320px
+            viewport in half leaves two unusable columns.
+          */
+          '--stage-left': copyOnLeft ? '47%' : '8%',
+          '--stage-right': copyOnLeft ? '8%' : '47%',
+        } as React.CSSProperties
+      }
     >
       <div
-        className="relative h-[62%] max-h-[62vh] transition-transform duration-[1200ms] ease-out"
+        className="relative h-[42%] max-h-[42vh] opacity-55 transition-transform duration-[1200ms] ease-out md:h-[62%] md:max-h-[62vh] md:opacity-100"
         style={{
           aspectRatio: FRAME_RATIO,
           /*
