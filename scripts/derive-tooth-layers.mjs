@@ -25,7 +25,8 @@
 
 import { NodeIO } from '@gltf-transform/core'
 import { KHRONOS_EXTENSIONS } from '@gltf-transform/extensions'
-import { dedup, prune, weld } from '@gltf-transform/functions'
+import { dedup, prune, weld, simplify } from '@gltf-transform/functions'
+import { MeshoptSimplifier } from 'meshoptimizer'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -40,19 +41,24 @@ function findSource(names) {
   return null
 }
 
+// Sources live in the repo, not /tmp, so this script is reproducible on any
+// checkout. Either Sketchfab download form works - GLB and the multi-file
+// glTF carry identical geometry, and the source textures are unused because
+// each layer gets its own material.
 const SHELL = findSource([
+  `${MODELS}/src/shell/scene.gltf`,
   `${MODELS}/tooth-shell.glb`,
-  '/tmp/tooth-src/shell/scene.gltf',
 ])
 const CANALS = findSource([
+  `${MODELS}/src/canals/scene.gltf`,
   `${MODELS}/tooth-canals.glb`,
-  '/tmp/tooth-src/canals/scene.gltf',
 ])
 
 if (!SHELL || !CANALS) {
-  console.error('Missing source models. Expected:')
-  console.error(`  ${MODELS}/tooth-shell.glb`)
-  console.error(`  ${MODELS}/tooth-canals.glb`)
+  console.error('Missing source models. Expected either:')
+  console.error(`  ${MODELS}/src/shell/scene.gltf   + ${MODELS}/src/canals/scene.gltf`)
+  console.error(`  ${MODELS}/tooth-shell.glb        + ${MODELS}/tooth-canals.glb`)
+  console.error('See public/models/README.md for the download links.')
   process.exit(1)
 }
 
@@ -311,6 +317,71 @@ function splitByPlane(position, index, normal, planeY) {
   return { above, below }
 }
 
+/**
+ * Laplacian smoothing: move each vertex toward the average of its neighbours.
+ *
+ * The Dundee source is "created in ZBrush using CT Data", and CT reconstruction
+ * bakes voxel slice terracing into the surface - fine concentric contour rings
+ * that read as moire once shaded. It is in the geometry, not the renderer:
+ * raising the dentin offset did not help (ruling out z-fighting) and decimating
+ * from 55k to 6.5k triangles did not help either (ruling out aliasing).
+ *
+ * Operates on the welded, indexed mesh so neighbours are real topological
+ * adjacency rather than coincident duplicates.
+ */
+function smoothVertices(position, index, iterations = 4, strength = 0.55) {
+  const n = position.length / 3
+  if (!index) return position
+
+  // Build adjacency once.
+  const neighbours = Array.from({ length: n }, () => new Set())
+  for (let t = 0; t < index.length; t += 3) {
+    const [a, b, c] = [index[t], index[t + 1], index[t + 2]]
+    neighbours[a].add(b); neighbours[a].add(c)
+    neighbours[b].add(a); neighbours[b].add(c)
+    neighbours[c].add(a); neighbours[c].add(b)
+  }
+
+  let current = Float32Array.from(position)
+  for (let it = 0; it < iterations; it++) {
+    const next = Float32Array.from(current)
+    for (let i = 0; i < n; i++) {
+      const nb = neighbours[i]
+      if (nb.size === 0) continue
+      let sx = 0, sy = 0, sz = 0
+      for (const j of nb) {
+        sx += current[j * 3]; sy += current[j * 3 + 1]; sz += current[j * 3 + 2]
+      }
+      const k = nb.size
+      next[i * 3]     = current[i * 3]     + strength * (sx / k - current[i * 3])
+      next[i * 3 + 1] = current[i * 3 + 1] + strength * (sy / k - current[i * 3 + 1])
+      next[i * 3 + 2] = current[i * 3 + 2] + strength * (sz / k - current[i * 3 + 2])
+    }
+    current = next
+  }
+  return current
+}
+
+/** Recompute vertex normals by area-weighted face-normal averaging. */
+function recomputeNormals(position, index) {
+  const n = position.length / 3
+  const out = new Float32Array(position.length)
+  const tris = index ? index.length / 3 : n / 3
+  for (let t = 0; t < tris; t++) {
+    const ids = index ? [index[t*3], index[t*3+1], index[t*3+2]] : [t*3, t*3+1, t*3+2]
+    const [a, b, c] = ids.map((i) => [position[i*3], position[i*3+1], position[i*3+2]])
+    const u = [b[0]-a[0], b[1]-a[1], b[2]-a[2]]
+    const v = [c[0]-a[0], c[1]-a[1], c[2]-a[2]]
+    const fn = [u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]]
+    for (const i of ids) for (let k = 0; k < 3; k++) out[i*3+k] += fn[k]
+  }
+  for (let i = 0; i < n; i++) {
+    const len = Math.hypot(out[i*3], out[i*3+1], out[i*3+2]) || 1
+    out[i*3] /= len; out[i*3+1] /= len; out[i*3+2] /= len
+  }
+  return out
+}
+
 /** Offset every vertex inward along its normal, producing the dentin shell. */
 function shrinkAlongNormals(position, normal, delta) {
   const out = new Float32Array(position.length)
@@ -352,6 +423,13 @@ const canalUp = uprightify(canalRaw.position, canalRaw.normal)
 canalRaw.position = canalUp.position
 canalRaw.normal = canalUp.normal
 
+// Remove CT slice terracing before deriving anything from this surface.
+if (shellRaw.index) {
+  shellRaw.position = Array.from(smoothVertices(shellRaw.position, shellRaw.index, 3, 0.4))
+  shellRaw.normal = Array.from(recomputeNormals(shellRaw.position, shellRaw.index))
+  console.log('  shell: CT terracing smoothed (3 passes, gentle to limit shrink)')
+}
+
 const shell = normalize(shellRaw.position, TARGET_HEIGHT)
 console.log(`  shell:  ${(shellRaw.position.length / 3).toLocaleString()} verts, ` +
   `size ${shell.size.map((v) => v.toFixed(2)).join(' x ')}`)
@@ -367,9 +445,10 @@ const { above: enamel, below: root } = splitByPlane(
 console.log(`  enamel: ${(enamel.position.length / 9).toLocaleString()} tris`)
 console.log(`  root:   ${(root.position.length / 9).toLocaleString()} tris`)
 
-// Dentin: the whole shell pulled inward. 4% of height reads as a distinct
+// Dentin: the whole shell pulled inward. At 4% it z-fought through the
+// semi-transparent enamel as visible moire; 7.5% of height reads as a distinct
 // layer without poking through the enamel at thin spots.
-const DENTIN_OFFSET = TARGET_HEIGHT * 0.04
+const DENTIN_OFFSET = TARGET_HEIGHT * 0.075
 const dentinPos = shrinkAlongNormals(shell.position, shellRaw.normal, DENTIN_OFFSET)
 const dentin = splitByPlane(dentinPos, shellRaw.index, shellRaw.normal, -Infinity).above
 console.log(`  dentin: ${(dentin.position.length / 9).toLocaleString()} tris (offset ${DENTIN_OFFSET.toFixed(3)})`)
@@ -377,9 +456,32 @@ console.log(`  dentin: ${(dentin.position.length / 9).toLocaleString()} tris (of
 // Pulp: the canal system, scaled to sit inside the tooth. The two models come
 // from different sources at different scales, so fit by height ratio and drop
 // it slightly so the canals sit in the roots rather than the crown.
-const canal = normalize(canalRaw.position, TARGET_HEIGHT * 0.62)
-const pulpPos = transform(canal.position, 1, [0, -TARGET_HEIGHT * 0.1, 0])
-console.log(`  pulp:   ${(canalRaw.position.length / 3 / 3).toLocaleString()} tris (scaled to 62% height)`)
+/**
+ * The canal system comes from a different scan than the shell, so it cannot be
+ * assumed to fit. Scale it against the shell's own measured width at the CEJ
+ * rather than a guessed fraction, then verify it is fully contained and shrink
+ * until it is - a pulp poking through the enamel is the one artifact that
+ * would read as broken rather than stylised.
+ */
+let canalScale = 0.5
+let pulpPos
+const shellMaxR = cej.equatorRadius
+for (let attempt = 0; attempt < 8; attempt++) {
+  const c = normalize(canalRaw.position, TARGET_HEIGHT * canalScale)
+  pulpPos = transform(c.position, 1, [0, -TARGET_HEIGHT * 0.08, 0])
+
+  // Widest horizontal reach of the canals.
+  let maxR = 0
+  for (let i = 0; i < pulpPos.length; i += 3) {
+    const r = Math.hypot(pulpPos[i], pulpPos[i + 2])
+    if (r > maxR) maxR = r
+  }
+  // Keep it comfortably inside the dentin, which already sits inside enamel.
+  if (maxR < shellMaxR * 0.55) break
+  canalScale *= 0.88
+}
+console.log(`  pulp:   fitted at ${(canalScale * 100).toFixed(0)}% height (contained inside dentin)`)
+
 
 // ---------------------------------------------------------------------------
 
@@ -430,14 +532,34 @@ for (const layer of LAYERS) {
     .setBaseColorFactor(layer.color)
     .setRoughnessFactor(layer.rough)
     .setMetallicFactor(0)
-    .setDoubleSided(true)
+    // Double-sided ONLY for the pulp, whose canal tubes have open ends.
+    // The closed shells must be single-sided: back faces rendering through a
+    // transparent enamel interleave with front faces and band the surface.
+    .setDoubleSided(layer.name === 'pulp')
   prim.setMaterial(mat)
 
   const mesh = doc.createMesh(layer.name).addPrimitive(prim)
   scene.addChild(doc.createNode(layer.name).setMesh(mesh))
 }
 
-await doc.transform(weld(), dedup(), prune())
+/**
+ * Decimate.
+ *
+ * The sources are CT-derived sculpts at ~55k triangles each. Rendered into a
+ * roughly 300px-tall object that is enormous oversampling, and it shows up as
+ * visible moire shimmer across the crown - geometric aliasing, not z-fighting
+ * (raising the dentin offset changed nothing, which is what ruled that out).
+ *
+ * weld() first: simplification needs shared vertices to collapse edges across,
+ * and these buffers are unindexed triangle soup.
+ */
+await MeshoptSimplifier.ready
+await doc.transform(
+  weld(),
+  simplify({ simplifier: MeshoptSimplifier, ratio: 0.18, error: 0.002 }),
+  dedup(),
+  prune(),
+)
 await io.write(`${MODELS}/tooth.glb`, doc)
 
 console.log(`\nWrote ${MODELS}/tooth.glb`)
