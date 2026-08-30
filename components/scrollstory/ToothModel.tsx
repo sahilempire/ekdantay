@@ -32,13 +32,20 @@ export const NODE_MATCHERS: Record<LayerKey, string[]> = {
   root: ['root', 'radix', 'wurzel', 'apex'],
 }
 
-/** How far along y each layer travels at full explode. */
+/**
+ * How far along y each layer travels at full explode.
+ *
+ * Deliberately short. Large separations made the pieces read as scattering
+ * debris rather than a tooth opening up - a sectioned anatomical diagram
+ * separates its layers just far enough to show what is underneath, and no
+ * further. These are roughly half what they were.
+ */
 const TRAVEL: Record<LayerKey, number> = {
   whole: 0,
-  enamel: 0.95,
-  dentin: 0.34,
-  pulp: -0.05,
-  root: -0.8,
+  enamel: 0.5,
+  dentin: 0.14,
+  pulp: -0.02,
+  root: -0.42,
 }
 
 /** Per-layer surface treatment. Enamel is glossy and slightly translucent. */

@@ -404,49 +404,41 @@ function recomputeNormals(position, index) {
 }
 
 /**
- * Slice a mesh at a horizontal plane and CAP both halves.
+ * Split a surface at a horizontal plane, returning open patches plus the
+ * ordered boundary loops along the cut.
  *
- * The first version assigned whole triangles to whichever side their centroid
- * fell on. That leaves two problems, both visible the moment the layers
- * separate: the boundary is a jagged sawtooth following triangle edges, and
- * each half is an open shell you can see straight through. Together they read
- * as a cracked tooth rather than a sectioned one.
- *
- * This splits crossing triangles exactly at the plane, so the boundary is a
- * clean curve, then fills the opening with a triangle fan so each half is a
- * closed solid with a flat cut face - which is what a sectioned anatomical
- * model actually looks like.
+ * Crossing triangles are split exactly at the plane so the boundary is a clean
+ * curve rather than a sawtooth following triangle edges. No capping here - the
+ * caller turns each patch into a closed SOLID, which is what actually makes an
+ * exploded view read as sectioned anatomy instead of torn paper.
  */
-function sliceAndCap(position, index, normal, planeY, capInset = 0) {
-  const tris = index ? index.length / 3 : position.length / 9
+function splitSurface(position, index, normal, planeY) {
+  const tris = index.length / 3
   const above = { position: [], normal: [] }
   const below = { position: [], normal: [] }
-  const cutRing = []
+  const segments = []
 
   const vert = (i) => [position[i * 3], position[i * 3 + 1], position[i * 3 + 2]]
-  const nrm = (i) =>
-    normal ? [normal[i * 3], normal[i * 3 + 1], normal[i * 3 + 2]] : [0, 1, 0]
+  const nrm = (i) => [normal[i * 3], normal[i * 3 + 1], normal[i * 3 + 2]]
 
-  /** Point where segment a-b crosses the plane, with its interpolated normal. */
   const cross = (a, b, na, nb) => {
     const t = (planeY - a[1]) / (b[1] - a[1])
+    const n = [na[0] + (nb[0] - na[0]) * t, na[1] + (nb[1] - na[1]) * t, na[2] + (nb[2] - na[2]) * t]
+    const len = Math.hypot(...n) || 1
     return {
       p: [a[0] + (b[0] - a[0]) * t, planeY, a[2] + (b[2] - a[2]) * t],
-      n: [na[0] + (nb[0] - na[0]) * t, na[1] + (nb[1] - na[1]) * t, na[2] + (nb[2] - na[2]) * t],
+      n: n.map((v) => v / len),
     }
   }
-
-  const push = (target, pts, nrms) => {
+  const push = (tgt, pts, ns) => {
     for (let i = 0; i < 3; i++) {
-      target.position.push(pts[i][0], pts[i][1], pts[i][2])
-      target.normal.push(nrms[i][0], nrms[i][1], nrms[i][2])
+      tgt.position.push(pts[i][0], pts[i][1], pts[i][2])
+      tgt.normal.push(ns[i][0], ns[i][1], ns[i][2])
     }
   }
 
   for (let t = 0; t < tris; t++) {
-    const ids = index
-      ? [index[t * 3], index[t * 3 + 1], index[t * 3 + 2]]
-      : [t * 3, t * 3 + 1, t * 3 + 2]
+    const ids = [index[t * 3], index[t * 3 + 1], index[t * 3 + 2]]
     const P = ids.map(vert)
     const N = ids.map(nrm)
     const side = P.map((p) => p[1] >= planeY)
@@ -455,109 +447,133 @@ function sliceAndCap(position, index, normal, planeY, capInset = 0) {
     if (nAbove === 3) { push(above, P, N); continue }
     if (nAbove === 0) { push(below, P, N); continue }
 
-    // One vertex alone on its side; the other two on the far side.
     const lone = nAbove === 1 ? side.indexOf(true) : side.indexOf(false)
-    const a = lone
-    const b = (lone + 1) % 3
-    const c = (lone + 2) % 3
-
+    const a = lone, b = (lone + 1) % 3, c = (lone + 2) % 3
     const ab = cross(P[a], P[b], N[a], N[b])
     const ac = cross(P[a], P[c], N[a], N[c])
-    cutRing.push([ab.p, ac.p])
+    segments.push([ab.p, ac.p])
 
     const loneSide = nAbove === 1 ? above : below
     const farSide = nAbove === 1 ? below : above
-
     push(loneSide, [P[a], ab.p, ac.p], [N[a], ab.n, ac.n])
     push(farSide, [ab.p, P[b], P[c]], [ab.n, N[b], N[c]])
     push(farSide, [ab.p, P[c], ac.p], [ab.n, N[c], ac.n])
   }
 
-  /**
-   * Cap the opening.
-   *
-   * The cut boundary is NOT one convex ring: a molar's cross-section at the
-   * CEJ is concave, and below it the two roots open as separate loops. Fanning
-   * every segment from a single global centroid produces overlapping degenerate
-   * triangles - a visible radial starburst across the cut face.
-   *
-   * So chain the segments into ordered closed loops first, then fan each loop
-   * from its own centroid. Coordinates are quantised when keying so endpoints
-   * shared between adjacent triangles actually match.
-   */
-  if (cutRing.length) {
-    const key = (p) => `${Math.round(p[0] * 1e4)}_${Math.round(p[2] * 1e4)}`
-    const adjacency = new Map()
-    const points = new Map()
-
-    for (const [p, q] of cutRing) {
-      const kp = key(p)
-      const kq = key(q)
-      if (kp === kq) continue
-      points.set(kp, p)
-      points.set(kq, q)
-      if (!adjacency.has(kp)) adjacency.set(kp, new Set())
-      if (!adjacency.has(kq)) adjacency.set(kq, new Set())
-      adjacency.get(kp).add(kq)
-      adjacency.get(kq).add(kp)
-    }
-
-    const visited = new Set()
-    const loops = []
-    for (const start of adjacency.keys()) {
-      if (visited.has(start)) continue
-      const loop = []
-      let current = start
-      let guard = 0
-      while (current && !visited.has(current) && guard++ < adjacency.size + 2) {
-        visited.add(current)
-        loop.push(points.get(current))
-        let next = null
-        for (const cand of adjacency.get(current) ?? []) {
-          if (!visited.has(cand)) { next = cand; break }
-        }
-        current = next
-      }
-      // Two points cannot enclose an area.
-      if (loop.length >= 3) loops.push(loop)
-    }
-
-    let capped = 0
-    for (const loop of loops) {
-      let cx = 0
-      let cz = 0
-      for (const p of loop) { cx += p[0]; cz += p[2] }
-      // Each cap sits just inside its own half, so the two are never coplanar.
-      const upCentre = [cx / loop.length, planeY + capInset, cz / loop.length]
-      const dnCentre = [cx / loop.length, planeY - capInset, cz / loop.length]
-      const lift = (p, dy) => [p[0], p[1] + dy, p[2]]
-
-      for (let i = 0; i < loop.length; i++) {
-        const p = loop[i]
-        const q = loop[(i + 1) % loop.length]
-        push(above, [upCentre, lift(q, capInset), lift(p, capInset)],
-             [[0, -1, 0], [0, -1, 0], [0, -1, 0]])
-        push(below, [dnCentre, lift(p, -capInset), lift(q, -capInset)],
-             [[0, 1, 0], [0, 1, 0], [0, 1, 0]])
-        capped++
-      }
-    }
-    cutRing.length = capped
-    cutRing.loops = loops.length
-  }
-
-  return { above, below, capSegments: cutRing.length, loops: cutRing.loops ?? 0 }
+  return { above, below, loops: chainLoops(segments) }
 }
 
-/** Offset every vertex inward along its normal, producing the dentin shell. */
+/** Chain cut segments into ordered closed loops. */
+function chainLoops(segments) {
+  const key = (p) => `${Math.round(p[0] * 1e4)}_${Math.round(p[2] * 1e4)}`
+  const adj = new Map()
+  const pts = new Map()
+  for (const [p, q] of segments) {
+    const kp = key(p), kq = key(q)
+    if (kp === kq) continue
+    pts.set(kp, p); pts.set(kq, q)
+    if (!adj.has(kp)) adj.set(kp, new Set())
+    if (!adj.has(kq)) adj.set(kq, new Set())
+    adj.get(kp).add(kq); adj.get(kq).add(kp)
+  }
+  const seen = new Set()
+  const loops = []
+  for (const start of adj.keys()) {
+    if (seen.has(start)) continue
+    const loop = []
+    let cur = start
+    let guard = 0
+    while (cur && !seen.has(cur) && guard++ < adj.size + 2) {
+      seen.add(cur)
+      loop.push(pts.get(cur))
+      let next = null
+      for (const cand of adj.get(cur) ?? []) if (!seen.has(cand)) { next = cand; break }
+      cur = next
+    }
+    if (loop.length >= 3) loops.push(loop)
+  }
+  return loops
+}
+
+/**
+ * Turn an open surface patch into a CLOSED SOLID with real wall thickness.
+ *
+ * This is the fix for the layers looking like torn paper. Previously each
+ * layer was a single surface with a flat disc taped over the cut, so from any
+ * oblique angle you saw a paper-thin sheet with a ragged edge. A real
+ * sectioned anatomical model - see the enamel cap in any dental diagram - is a
+ * shell you can see the WALL of.
+ *
+ * Construction: the patch as the outer wall, a copy offset inward along its
+ * own normals as the inner wall with reversed winding, and a rim of quads
+ * stitching the two together around every boundary loop. The result is
+ * watertight and reads as solid from every direction.
+ */
+function makeSolid(patch, thickness, loops) {
+  const out = { position: [], normal: [] }
+  const P = patch.position, N = patch.normal
+  const triCount = P.length / 9
+
+  // Outer wall, as given.
+  for (let i = 0; i < P.length; i++) out.position.push(P[i])
+  for (let i = 0; i < N.length; i++) out.normal.push(N[i])
+
+  // Inner wall: offset inward, winding reversed so it faces into the cavity.
+  for (let t = 0; t < triCount; t++) {
+    const v = [0, 1, 2].map((k) => {
+      const i = t * 9 + k * 3
+      return {
+        p: [P[i] - N[i] * thickness, P[i + 1] - N[i + 1] * thickness, P[i + 2] - N[i + 2] * thickness],
+        n: [-N[i], -N[i + 1], -N[i + 2]],
+      }
+    })
+    for (const k of [0, 2, 1]) {
+      out.position.push(...v[k].p)
+      out.normal.push(...v[k].n)
+    }
+  }
+
+  // Rim: stitch outer boundary to inner boundary so the wall is visible.
+  for (const loop of loops) {
+    // Approximate the loop's inward direction from its own centroid.
+    let cx = 0, cz = 0
+    for (const p of loop) { cx += p[0]; cz += p[2] }
+    cx /= loop.length; cz /= loop.length
+
+    for (let i = 0; i < loop.length; i++) {
+      const a = loop[i]
+      const b = loop[(i + 1) % loop.length]
+      const inset = (p) => {
+        const dx = p[0] - cx, dz = p[2] - cz
+        const d = Math.hypot(dx, dz) || 1
+        return [p[0] - (dx / d) * thickness, p[1], p[2] - (dz / d) * thickness]
+      }
+      const ai = inset(a), bi = inset(b)
+      const rimN = (p) => {
+        const dx = p[0] - cx, dz = p[2] - cz
+        const d = Math.hypot(dx, dz) || 1
+        return [0, loop === loops[0] ? 1 : 1, 0]
+      }
+      // Two triangles forming the rim quad a -> b -> bi -> ai.
+      for (const tri of [[a, b, bi], [a, bi, ai]]) {
+        for (const p of tri) {
+          out.position.push(p[0], p[1], p[2])
+          out.normal.push(...rimN(p))
+        }
+      }
+    }
+  }
+
+  return out
+}
+
+/** Offset every vertex inward along its normal. */
 function shrinkAlongNormals(position, normal, delta) {
   const out = new Float32Array(position.length)
   const n = position.length / 3
   for (let i = 0; i < n; i++) {
     for (let a = 0; a < 3; a++) {
-      const p = position[i * 3 + a]
-      const nv = normal ? normal[i * 3 + a] : 0
-      out[i * 3 + a] = p - nv * delta
+      out[i * 3 + a] = position[i * 3 + a] - (normal ? normal[i * 3 + a] : 0) * delta
     }
   }
   return out
@@ -607,62 +623,50 @@ console.log(`  CEJ found at y=${cej.y.toFixed(3)} (crown is top ${(crownFraction
 
 // Split the shell into enamel (crown) and root.
 /**
- * One cut plane, with the cap faces inset into each half.
+ * Build the layers as CLOSED SOLIDS with real wall thickness.
  *
- * An earlier attempt cut the halves at two slightly different planes so they
- * would overlap and hide the seam. That is exactly wrong: both shells then
- * carry surface geometry through the same band, and coincident surfaces
- * z-fight into the very line it was meant to remove.
+ * This is the fix for the layers reading as torn paper. Previously each layer
+ * was a single surface with a flat disc taped over the cut, so from any
+ * oblique angle you saw a paper-thin sheet with a ragged edge scattering
+ * apart. A real sectioned tooth diagram shows shells you can see the WALL of.
  *
- * Cutting at a single plane makes the two shells meet at an edge rather than
- * overlap. The remaining risk is the two cap discs being coplanar back to
- * back, so each is pushed a hair into its own half's interior, where it is
- * hidden by that half's own surface until the layers separate.
+ *   enamel - a thick cap over the crown, hollow, with a visible rim
+ *   dentin - the body beneath it, also a shell so the pulp shows within
+ *   pulp   - the canal system, already solid
+ *   root   - thick root pieces below the cemento-enamel junction
  */
-const sliced = sliceAndCap(shell.position, shellRaw.index, shellRaw.normal, cej.y, TARGET_HEIGHT * 0.006)
-const enamel = sliced.above
-const root = sliced.below
-console.log(`  cut:    ${sliced.loops} loop(s), caps inset to avoid coplanar z-fight`)
-console.log(`  enamel: ${(enamel.position.length / 9).toLocaleString()} tris`)
-console.log(`  root:   ${(root.position.length / 9).toLocaleString()} tris`)
+const WALL = TARGET_HEIGHT * 0.05
 
-// Dentin: the whole shell pulled inward. At 4% it z-fought through the
-// semi-transparent enamel as visible moire; 7.5% of height reads as a distinct
-// layer without poking through the enamel at thin spots.
-const DENTIN_OFFSET = TARGET_HEIGHT * 0.075
-const dentinPos = shrinkAlongNormals(shell.position, shellRaw.normal, DENTIN_OFFSET)
-// Dentin stays whole; it only needs its own closed surface.
-const dentin = sliceAndCap(dentinPos, shellRaw.index, shellRaw.normal, -Infinity).above
-console.log(`  dentin: ${(dentin.position.length / 9).toLocaleString()} tris (offset ${DENTIN_OFFSET.toFixed(3)})`)
+const crownSplit = splitSurface(shell.position, shellRaw.index, shellRaw.normal, cej.y)
+const enamel = makeSolid(crownSplit.above, WALL, crownSplit.loops)
+const root = makeSolid(crownSplit.below, WALL, crownSplit.loops)
+console.log(`  cut:    ${crownSplit.loops.length} boundary loop(s), wall ${WALL.toFixed(3)}`)
+console.log(`  enamel: ${(enamel.position.length / 9).toLocaleString()} tris (solid cap)`)
+console.log(`  root:   ${(root.position.length / 9).toLocaleString()} tris (solid)`)
 
-// Pulp: the canal system, scaled to sit inside the tooth. The two models come
-// from different sources at different scales, so fit by height ratio and drop
-// it slightly so the canals sit in the roots rather than the crown.
-/**
- * The canal system comes from a different scan than the shell, so it cannot be
- * assumed to fit. Scale it against the shell's own measured width at the CEJ
- * rather than a guessed fraction, then verify it is fully contained and shrink
- * until it is - a pulp poking through the enamel is the one artifact that
- * would read as broken rather than stylised.
- */
+// Dentin nests inside enamel: its outer surface IS the enamel's inner surface,
+// so there is no gap between them.
+const dentinSurface = shrinkAlongNormals(shell.position, shellRaw.normal, WALL)
+const dentinSplit = splitSurface(dentinSurface, shellRaw.index, shellRaw.normal, cej.y)
+const dentin = makeSolid(dentinSplit.above, WALL * 0.8, dentinSplit.loops)
+console.log(`  dentin: ${(dentin.position.length / 9).toLocaleString()} tris (solid)`)
+
+// Pulp: fitted so the canals stay inside the dentin cavity.
 let canalScale = 0.5
 let pulpPos
 const shellMaxR = cej.equatorRadius
-for (let attempt = 0; attempt < 8; attempt++) {
+for (let attempt = 0; attempt < 10; attempt++) {
   const c = normalize(canalRaw.position, TARGET_HEIGHT * canalScale)
-  pulpPos = transform(c.position, 1, [0, -TARGET_HEIGHT * 0.08, 0])
-
-  // Widest horizontal reach of the canals.
+  pulpPos = transform(c.position, 1, [0, -TARGET_HEIGHT * 0.06, 0])
   let maxR = 0
   for (let i = 0; i < pulpPos.length; i += 3) {
     const r = Math.hypot(pulpPos[i], pulpPos[i + 2])
     if (r > maxR) maxR = r
   }
-  // Keep it comfortably inside the dentin, which already sits inside enamel.
-  if (maxR < shellMaxR * 0.55) break
+  if (maxR < shellMaxR * 0.4) break
   canalScale *= 0.88
 }
-console.log(`  pulp:   fitted at ${(canalScale * 100).toFixed(0)}% height (contained inside dentin)`)
+console.log(`  pulp:   fitted at ${(canalScale * 100).toFixed(0)}% height`)
 
 
 // ---------------------------------------------------------------------------
@@ -696,7 +700,7 @@ root_.setDefaultScene(scene)
  * explode begins, which makes an intact hero tooth guaranteed rather than
  * something to keep debugging.
  */
-const whole = sliceAndCap(shell.position, shellRaw.index, shellRaw.normal, -Infinity).above
+const whole = splitSurface(shell.position, shellRaw.index, shellRaw.normal, -Infinity).above
 
 const LAYERS = [
   { name: 'whole', data: whole, color: [0.98, 0.96, 0.93, 1], rough: 0.14 },
