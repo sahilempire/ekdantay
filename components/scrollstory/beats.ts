@@ -17,8 +17,14 @@ export interface Beat {
   body: string
   /** Small technical card, the way Oryzo shows "FRICTION COEFFICIENT: 0.80". */
   readout?: { label: string; value: string }
-  /** Camera target for this beat. */
+  /** Camera position for this beat. */
   camera: { x: number; y: number; z: number }
+  /**
+   * What the camera looks at. Defaults to the origin, but the layer beats
+   * aim at the focused layer's own exploded position so it fills the frame
+   * instead of sitting small in a wide shot of the whole assembly.
+   */
+  target?: { x: number; y: number; z: number }
   /** How far the tooth's parts separate. 0 = whole, 1 = fully exploded. */
   explode: number
   /** Which layer glows to draw the eye. */
@@ -74,7 +80,8 @@ export const BEATS: Beat[] = [
     title: 'Enamel',
     body: 'The hardest tissue in your body — and the part that stains. Professional whitening lifts years of tea and tobacco without touching what is underneath.',
     readout: { label: 'Whitening', value: '₹3,500 / session' },
-    camera: { x: 1.5, y: 0.9, z: 7.4 },
+    camera: { x: 1.15, y: 1.5, z: 4.3 },
+    target: { x: 0, y: 0.9, z: 0 },
     explode: 0.3,
     focus: 'enamel',
     bg: 'var(--surface-sunk)',
@@ -88,7 +95,8 @@ export const BEATS: Beat[] = [
     title: 'Dentin',
     body: 'Softer, and full of microscopic tubules. Once decay reaches here it moves fast — which is why a cleaning and a filling now costs a fraction of what waiting costs.',
     readout: { label: 'Checkup & clean', value: '₹800 / visit' },
-    camera: { x: -1.7, y: 0.2, z: 8.2 },
+    camera: { x: -1.5, y: 0.6, z: 4.0 },
+    target: { x: 0, y: 0.2, z: 0 },
     explode: 0.55,
     focus: 'dentin',
     bg: '#2A2620',
@@ -103,7 +111,8 @@ export const BEATS: Beat[] = [
     title: 'Pulp',
     body: 'Nerves and blood vessels. This is where toothache comes from, and where a root canal goes. Modern anaesthesia means you feel pressure, not pain.',
     readout: { label: 'Pain-free treatment', value: 'Same day' },
-    camera: { x: 1.2, y: -0.3, z: 8.8 },
+    camera: { x: 1.0, y: -0.1, z: 3.4 },
+    target: { x: 0, y: -0.15, z: 0 },
     explode: 0.78,
     focus: 'pulp',
     bg: '#1C1815',
@@ -118,7 +127,8 @@ export const BEATS: Beat[] = [
     title: 'Root',
     body: 'Set into the jaw. When a tooth cannot be saved, an implant replaces the root itself — so the replacement bites, and lasts, like the original.',
     readout: { label: 'Dental implant', value: '₹25,000 / tooth' },
-    camera: { x: -1.3, y: -1.1, z: 9.2 },
+    camera: { x: -1.1, y: -1.5, z: 4.2 },
+    target: { x: 0, y: -2.4, z: 0 },
     explode: 1,
     focus: 'root',
     bg: '#22201C',
@@ -133,7 +143,8 @@ export const BEATS: Beat[] = [
     title: 'Alignment',
     body: 'Crowded teeth trap what a brush cannot reach. Straightening is not only cosmetic — it is the cheapest long-term way to keep the layers above intact.',
     readout: { label: 'Orthodontics', value: '₹45,000 / treatment' },
-    camera: { x: 0.6, y: 0.6, z: 7.0 },
+    camera: { x: 0.9, y: 0.7, z: 5.2 },
+    target: { x: 0, y: 0.3, z: 0 },
     explode: 0.35,
     focus: 'enamel',
     bg: 'var(--surface)',

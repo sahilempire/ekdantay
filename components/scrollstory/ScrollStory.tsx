@@ -124,14 +124,23 @@ export function ScrollStory() {
       >
         <div className="absolute inset-0">{ready && <Scene progressRef={progress} />}</div>
 
-        {/* Keeps type legible over the scene without a flat scrim. */}
-        <div
+        {/*
+          Directional scrim on the copy side.
+
+          Zooming the camera in on each layer is what makes the sequence read
+          as a product demo rather than a wide shot - but it also pushes the
+          model straight under the text. A gradient anchored to whichever side
+          the copy sits on keeps type legible without flattening the whole
+          scene behind a uniform overlay.
+        */}
+        <motion.div
           className="pointer-events-none absolute inset-0"
-          style={{
+          animate={{
             background: alignRight
-              ? 'radial-gradient(110% 90% at 25% 50%, transparent 28%, color-mix(in srgb, currentColor 0%, transparent) 100%)'
-              : undefined,
+              ? `linear-gradient(270deg, ${beat.bg} 0%, ${beat.bg} 22%, transparent 62%)`
+              : `linear-gradient(90deg, ${beat.bg} 0%, ${beat.bg} 22%, transparent 62%)`,
           }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
         />
 
         <Container className="pointer-events-none relative flex h-screen items-center">

@@ -17,15 +17,23 @@ const MODEL_SRC: string | null = '/models/tooth.glb'
 function Rig({ progressRef }: { progressRef: React.RefObject<number> }) {
   const { camera } = useThree()
   const target = useRef(new THREE.Vector3(0, 0, 7.5))
+  const lookAt = useRef(new THREE.Vector3(0, 0, 0))
 
   useFrame((_, delta) => {
     const p = progressRef.current ?? 0
     const beat = resolveBeat(p)
+    const k = Math.min(delta * 2.4, 1)
+
     target.current.set(beat.camera.x, beat.camera.y, beat.camera.z)
-    // Critically damped follow - the camera arrives without overshooting,
-    // which keeps a scroll-driven move from feeling springy or seasick.
-    camera.position.lerp(target.current, Math.min(delta * 2.4, 1))
-    camera.lookAt(0, 0, 0)
+    // Critically damped follow - arrives without overshooting, which keeps a
+    // scroll-driven move from feeling springy or seasick.
+    camera.position.lerp(target.current, k)
+
+    // Ease the look-at too. Snapping it while the position eases would swing
+    // the horizon on every beat change.
+    const t = beat.target ?? { x: 0, y: 0, z: 0 }
+    lookAt.current.lerp(new THREE.Vector3(t.x, t.y, t.z), k)
+    camera.lookAt(lookAt.current)
   })
   return null
 }

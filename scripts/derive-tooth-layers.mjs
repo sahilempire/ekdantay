@@ -295,45 +295,17 @@ function findCEJ(position, slices = 120) {
   return { y: minY + cej * step, equatorRadius: best, minY, maxY }
 }
 
-/** Split triangles into above/below a Y plane, by triangle centroid. */
-function splitByPlane(position, index, normal, planeY) {
-  const tris = index ? index.length / 3 : position.length / 9
-  const above = { position: [], normal: [] }
-  const below = { position: [], normal: [] }
-
-  for (let t = 0; t < tris; t++) {
-    const ids = index
-      ? [index[t * 3], index[t * 3 + 1], index[t * 3 + 2]]
-      : [t * 3, t * 3 + 1, t * 3 + 2]
-
-    const centroidY = (position[ids[0] * 3 + 1] + position[ids[1] * 3 + 1] + position[ids[2] * 3 + 1]) / 3
-    const target = centroidY >= planeY ? above : below
-
-    for (const id of ids) {
-      target.position.push(position[id * 3], position[id * 3 + 1], position[id * 3 + 2])
-      if (normal) target.normal.push(normal[id * 3], normal[id * 3 + 1], normal[id * 3 + 2])
-    }
-  }
-  return { above, below }
-}
-
 /**
  * Laplacian smoothing: move each vertex toward the average of its neighbours.
  *
  * The Dundee source is "created in ZBrush using CT Data", and CT reconstruction
- * bakes voxel slice terracing into the surface - fine concentric contour rings
- * that read as moire once shaded. It is in the geometry, not the renderer:
- * raising the dentin offset did not help (ruling out z-fighting) and decimating
- * from 55k to 6.5k triangles did not help either (ruling out aliasing).
- *
- * Operates on the welded, indexed mesh so neighbours are real topological
- * adjacency rather than coincident duplicates.
+ * bakes voxel slice terracing into the surface. Operates on the indexed mesh so
+ * neighbours are real topological adjacency, not coincident duplicates.
  */
 function smoothVertices(position, index, iterations = 4, strength = 0.55) {
   const n = position.length / 3
   if (!index) return position
 
-  // Build adjacency once.
   const neighbours = Array.from({ length: n }, () => new Set())
   for (let t = 0; t < index.length; t += 3) {
     const [a, b, c] = [index[t], index[t + 1], index[t + 2]]
@@ -380,6 +352,147 @@ function recomputeNormals(position, index) {
     out[i*3] /= len; out[i*3+1] /= len; out[i*3+2] /= len
   }
   return out
+}
+
+/**
+ * Slice a mesh at a horizontal plane and CAP both halves.
+ *
+ * The first version assigned whole triangles to whichever side their centroid
+ * fell on. That leaves two problems, both visible the moment the layers
+ * separate: the boundary is a jagged sawtooth following triangle edges, and
+ * each half is an open shell you can see straight through. Together they read
+ * as a cracked tooth rather than a sectioned one.
+ *
+ * This splits crossing triangles exactly at the plane, so the boundary is a
+ * clean curve, then fills the opening with a triangle fan so each half is a
+ * closed solid with a flat cut face - which is what a sectioned anatomical
+ * model actually looks like.
+ */
+function sliceAndCap(position, index, normal, planeY) {
+  const tris = index ? index.length / 3 : position.length / 9
+  const above = { position: [], normal: [] }
+  const below = { position: [], normal: [] }
+  const cutRing = []
+
+  const vert = (i) => [position[i * 3], position[i * 3 + 1], position[i * 3 + 2]]
+  const nrm = (i) =>
+    normal ? [normal[i * 3], normal[i * 3 + 1], normal[i * 3 + 2]] : [0, 1, 0]
+
+  /** Point where segment a-b crosses the plane, with its interpolated normal. */
+  const cross = (a, b, na, nb) => {
+    const t = (planeY - a[1]) / (b[1] - a[1])
+    return {
+      p: [a[0] + (b[0] - a[0]) * t, planeY, a[2] + (b[2] - a[2]) * t],
+      n: [na[0] + (nb[0] - na[0]) * t, na[1] + (nb[1] - na[1]) * t, na[2] + (nb[2] - na[2]) * t],
+    }
+  }
+
+  const push = (target, pts, nrms) => {
+    for (let i = 0; i < 3; i++) {
+      target.position.push(pts[i][0], pts[i][1], pts[i][2])
+      target.normal.push(nrms[i][0], nrms[i][1], nrms[i][2])
+    }
+  }
+
+  for (let t = 0; t < tris; t++) {
+    const ids = index
+      ? [index[t * 3], index[t * 3 + 1], index[t * 3 + 2]]
+      : [t * 3, t * 3 + 1, t * 3 + 2]
+    const P = ids.map(vert)
+    const N = ids.map(nrm)
+    const side = P.map((p) => p[1] >= planeY)
+    const nAbove = side.filter(Boolean).length
+
+    if (nAbove === 3) { push(above, P, N); continue }
+    if (nAbove === 0) { push(below, P, N); continue }
+
+    // One vertex alone on its side; the other two on the far side.
+    const lone = nAbove === 1 ? side.indexOf(true) : side.indexOf(false)
+    const a = lone
+    const b = (lone + 1) % 3
+    const c = (lone + 2) % 3
+
+    const ab = cross(P[a], P[b], N[a], N[b])
+    const ac = cross(P[a], P[c], N[a], N[c])
+    cutRing.push([ab.p, ac.p])
+
+    const loneSide = nAbove === 1 ? above : below
+    const farSide = nAbove === 1 ? below : above
+
+    push(loneSide, [P[a], ab.p, ac.p], [N[a], ab.n, ac.n])
+    push(farSide, [ab.p, P[b], P[c]], [ab.n, N[b], N[c]])
+    push(farSide, [ab.p, P[c], ac.p], [ab.n, N[c], ac.n])
+  }
+
+  /**
+   * Cap the opening.
+   *
+   * The cut boundary is NOT one convex ring: a molar's cross-section at the
+   * CEJ is concave, and below it the two roots open as separate loops. Fanning
+   * every segment from a single global centroid produces overlapping degenerate
+   * triangles - a visible radial starburst across the cut face.
+   *
+   * So chain the segments into ordered closed loops first, then fan each loop
+   * from its own centroid. Coordinates are quantised when keying so endpoints
+   * shared between adjacent triangles actually match.
+   */
+  if (cutRing.length) {
+    const key = (p) => `${Math.round(p[0] * 1e4)}_${Math.round(p[2] * 1e4)}`
+    const adjacency = new Map()
+    const points = new Map()
+
+    for (const [p, q] of cutRing) {
+      const kp = key(p)
+      const kq = key(q)
+      if (kp === kq) continue
+      points.set(kp, p)
+      points.set(kq, q)
+      if (!adjacency.has(kp)) adjacency.set(kp, new Set())
+      if (!adjacency.has(kq)) adjacency.set(kq, new Set())
+      adjacency.get(kp).add(kq)
+      adjacency.get(kq).add(kp)
+    }
+
+    const visited = new Set()
+    const loops = []
+    for (const start of adjacency.keys()) {
+      if (visited.has(start)) continue
+      const loop = []
+      let current = start
+      let guard = 0
+      while (current && !visited.has(current) && guard++ < adjacency.size + 2) {
+        visited.add(current)
+        loop.push(points.get(current))
+        let next = null
+        for (const cand of adjacency.get(current) ?? []) {
+          if (!visited.has(cand)) { next = cand; break }
+        }
+        current = next
+      }
+      // Two points cannot enclose an area.
+      if (loop.length >= 3) loops.push(loop)
+    }
+
+    let capped = 0
+    for (const loop of loops) {
+      let cx = 0
+      let cz = 0
+      for (const p of loop) { cx += p[0]; cz += p[2] }
+      const centre = [cx / loop.length, planeY, cz / loop.length]
+
+      for (let i = 0; i < loop.length; i++) {
+        const p = loop[i]
+        const q = loop[(i + 1) % loop.length]
+        push(above, [centre, q, p], [[0, -1, 0], [0, -1, 0], [0, -1, 0]])
+        push(below, [centre, p, q], [[0, 1, 0], [0, 1, 0], [0, 1, 0]])
+        capped++
+      }
+    }
+    cutRing.length = capped
+    cutRing.loops = loops.length
+  }
+
+  return { above, below, capSegments: cutRing.length, loops: cutRing.loops ?? 0 }
 }
 
 /** Offset every vertex inward along its normal, producing the dentin shell. */
@@ -439,9 +552,10 @@ const crownFraction = (cej.maxY - cej.y) / TARGET_HEIGHT
 console.log(`  CEJ found at y=${cej.y.toFixed(3)} (crown is top ${(crownFraction * 100).toFixed(0)}% of height)`)
 
 // Split the shell into enamel (crown) and root.
-const { above: enamel, below: root } = splitByPlane(
-  shell.position, shellRaw.index, shellRaw.normal, cej.y,
-)
+const sliced = sliceAndCap(shell.position, shellRaw.index, shellRaw.normal, cej.y)
+const enamel = sliced.above
+const root = sliced.below
+console.log(`  cut:    ${sliced.loops} closed loop(s), ${sliced.capSegments.toLocaleString()} cap triangles`)
 console.log(`  enamel: ${(enamel.position.length / 9).toLocaleString()} tris`)
 console.log(`  root:   ${(root.position.length / 9).toLocaleString()} tris`)
 
@@ -450,7 +564,8 @@ console.log(`  root:   ${(root.position.length / 9).toLocaleString()} tris`)
 // layer without poking through the enamel at thin spots.
 const DENTIN_OFFSET = TARGET_HEIGHT * 0.075
 const dentinPos = shrinkAlongNormals(shell.position, shellRaw.normal, DENTIN_OFFSET)
-const dentin = splitByPlane(dentinPos, shellRaw.index, shellRaw.normal, -Infinity).above
+// Dentin stays whole; it only needs its own closed surface.
+const dentin = sliceAndCap(dentinPos, shellRaw.index, shellRaw.normal, -Infinity).above
 console.log(`  dentin: ${(dentin.position.length / 9).toLocaleString()} tris (offset ${DENTIN_OFFSET.toFixed(3)})`)
 
 // Pulp: the canal system, scaled to sit inside the tooth. The two models come
