@@ -16,7 +16,7 @@ import { resolveBeat } from './beats'
  * degrades to "model shows but does not explode", never to a blank canvas.
  */
 
-export type LayerKey = 'enamel' | 'dentin' | 'pulp' | 'root'
+export type LayerKey = 'whole' | 'enamel' | 'dentin' | 'pulp' | 'root'
 
 /**
  * Substrings matched (case-insensitively) against mesh names in the GLB.
@@ -24,6 +24,8 @@ export type LayerKey = 'enamel' | 'dentin' | 'pulp' | 'root'
  * several aliases. First match wins, checked in array order.
  */
 export const NODE_MATCHERS: Record<LayerKey, string[]> = {
+  // Checked in order, so `whole` must precede the parts it would also match.
+  whole: ['whole'],
   enamel: ['enamel', 'crown', 'schmelz', 'outer'],
   dentin: ['dentin', 'dentine', 'dentil', 'body', 'inner'],
   pulp: ['pulp', 'nerve', 'canal', 'cavity', 'core'],
@@ -32,6 +34,7 @@ export const NODE_MATCHERS: Record<LayerKey, string[]> = {
 
 /** How far along y each layer travels at full explode. */
 const TRAVEL: Record<LayerKey, number> = {
+  whole: 0,
   enamel: 0.95,
   dentin: 0.34,
   pulp: -0.05,
@@ -40,6 +43,7 @@ const TRAVEL: Record<LayerKey, number> = {
 
 /** Per-layer surface treatment. Enamel is glossy and slightly translucent. */
 const LOOK: Record<LayerKey, { color: string; roughness: number; clearcoat: number }> = {
+  whole: { color: '#FAF6EF', roughness: 0.13, clearcoat: 1 },
   enamel: { color: '#FAF6EF', roughness: 0.13, clearcoat: 1 },
   dentin: { color: '#E6D2B4', roughness: 0.58, clearcoat: 0.25 },
   pulp: { color: '#C4635A', roughness: 0.72, clearcoat: 0 },
@@ -49,6 +53,7 @@ const LOOK: Record<LayerKey, { color: string; roughness: number; clearcoat: numb
 }
 
 const GLOW: Record<LayerKey, string> = {
+  whole: '#E8A94E',
   enamel: '#E8A94E',
   dentin: '#E8A94E',
   pulp: '#C4635A',
@@ -134,9 +139,10 @@ export function ToothModel({ src, progressRef, scale = 1 }: Props) {
 
   const anim = useRef({
     explode: 0,
+    spin: 0,
     offsetX: 0,
     offsetY: 0,
-    glow: { enamel: 0, dentin: 0, pulp: 0, root: 0 },
+    glow: { whole: 0, enamel: 0, dentin: 0, pulp: 0, root: 0 } as Record<LayerKey, number>,
   })
 
   useEffect(() => {
@@ -163,7 +169,16 @@ export function ToothModel({ src, progressRef, scale = 1 }: Props) {
     }
 
     if (group.current) {
-      group.current.rotation.y = progress * Math.PI * 1.35
+      /**
+       * Two rotations, added.
+       *
+       * A slow constant turn so the hero is alive while the page is still -
+       * scroll-only rotation leaves it frozen until someone moves, which reads
+       * as a static render. It eases off as the sequence opens up, because
+       * once the layers are apart a spinning object is harder to read.
+       */
+      a.spin += delta * 0.22 * (1 - Math.min(a.explode * 1.6, 0.85))
+      group.current.rotation.y = a.spin + progress * Math.PI * 1.1
       group.current.rotation.z = Math.sin(progress * Math.PI) * 0.12
 
       // Slide the model between beats so it never sits under the copy.
@@ -192,6 +207,22 @@ export function ToothModel({ src, progressRef, scale = 1 }: Props) {
        * you want to see, so the transparency follows explode rather than being
        * a constant.
        */
+      /**
+       * Crossfade whole -> parts. The uncut shell carries the closed state so
+       * no seam or protrusion can show while the tooth is meant to be intact;
+       * the sectioned layers take over as soon as it starts opening.
+       */
+      const opened = Math.min(a.explode * 3.2, 1)
+      if (layer === 'whole') {
+        mat.transparent = opened > 0.01
+        mat.opacity = 1 - opened
+        mesh.visible = opened < 0.995
+      } else {
+        mat.transparent = opened < 0.99
+        mat.opacity = opened
+        mesh.visible = opened > 0.005
+      }
+
       if (layer === 'enamel' && 'transmission' in mat) {
         const open = Math.min(a.explode * 2.2, 1)
         mat.transmission = open * 0.55

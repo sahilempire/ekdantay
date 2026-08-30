@@ -633,7 +633,24 @@ for (const tex of root_.listTextures()) tex.dispose()
 const scene = doc.createScene('tooth')
 root_.setDefaultScene(scene)
 
+/**
+ * `whole` is the complete uncut shell, and it is what the hero shows.
+ *
+ * Every attempt to make the CLOSED tooth look intact by tuning the split
+ * failed for a different reason: coplanar caps z-fighting, overlapping shells
+ * z-fighting, the pulp protruding where the shell is narrower than the equator
+ * radius my containment check used. All of those are artifacts of showing
+ * sectioned geometry while it is supposed to look whole.
+ *
+ * So do not show sectioned geometry when it is whole. The component
+ * crossfades from this single closed surface into the four layers as the
+ * explode begins, which makes an intact hero tooth guaranteed rather than
+ * something to keep debugging.
+ */
+const whole = sliceAndCap(shell.position, shellRaw.index, shellRaw.normal, -Infinity).above
+
 const LAYERS = [
+  { name: 'whole', data: whole, color: [0.98, 0.96, 0.93, 1], rough: 0.14 },
   { name: 'enamel', data: enamel, color: [0.97, 0.95, 0.91, 1], rough: 0.15 },
   { name: 'dentin', data: dentin, color: [0.92, 0.85, 0.75, 1], rough: 0.55 },
   { name: 'pulp', data: { position: Array.from(pulpPos), normal: canalRaw.normal }, color: [0.77, 0.39, 0.35, 1], rough: 0.7 },
