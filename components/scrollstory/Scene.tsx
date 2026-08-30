@@ -1,11 +1,18 @@
 'use client'
 
-import { useRef } from 'react'
+import { Suspense, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { ContactShadows } from '@react-three/drei'
 import * as THREE from 'three'
 import { Tooth } from './Tooth'
+import { ToothModel } from './ToothModel'
 import { BEATS, type Beat } from './beats'
+
+/**
+ * Set to a path under /public once we have a licensed anatomical model, e.g.
+ * '/models/tooth.glb'. Null keeps the procedural fallback.
+ */
+const MODEL_SRC: string | null = null
 
 /** Which beat a given scroll progress belongs to, and the blend toward the next. */
 function resolveBeat(p: number): Beat {
@@ -52,7 +59,16 @@ export default function Scene({ progressRef }: { progressRef: React.RefObject<nu
       {!isPhone && <pointLight position={[0, 3, -5]} intensity={1.4} color="#FFFFFF" />}
 
       <Rig progressRef={progressRef} />
-      <Tooth progressRef={progressRef} />
+      {/* A real GLB takes over the moment one is dropped in; until then the
+          procedural tooth keeps the sequence working. Swapping is a one-line
+          change, not a rewrite, because both take the same progressRef. */}
+      {MODEL_SRC ? (
+        <Suspense fallback={<Tooth progressRef={progressRef} />}>
+          <ToothModel src={MODEL_SRC} progressRef={progressRef} />
+        </Suspense>
+      ) : (
+        <Tooth progressRef={progressRef} />
+      )}
 
       {!isPhone && (
         <ContactShadows position={[0, -2.6, 0]} opacity={0.3} scale={9} blur={2.8} far={5} color="#2A2018" />
