@@ -29,7 +29,7 @@ const SketchfabStage = dynamic(
  * Kept as a switch rather than a replacement so the two can be compared
  * against the same beats before one is committed to.
  */
-const STAGE: 'sketchfab' | 'derived' = 'sketchfab'
+const STAGE: 'sketchfab' | 'derived' = 'derived'
 
 /**
  * The whole top of the page: one pinned 3D scene the camera flies through,
