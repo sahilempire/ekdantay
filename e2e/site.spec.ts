@@ -136,13 +136,24 @@ test.describe('booking', () => {
 test.describe('mobile', () => {
   test.use({ ...devicesPixel() })
 
-  test('does not load the 3D chunk on a phone', async ({ page }) => {
-    const requests: string[] = []
-    page.on('request', (r) => requests.push(r.url()))
+  test('renders the scroll story with a canvas on a phone', async ({ page }) => {
+    // The direction changed deliberately: 2026 scrollytelling guidance is that
+    // desktop-only scroll experiences are obsolete, and the right pattern is a
+    // lighter scene on weak hardware rather than no scene. This asserts the
+    // canvas actually mounts on a touch device.
     await page.goto('/', { waitUntil: 'networkidle' })
-    await page.waitForTimeout(1500)
-    // three.js must never be fetched on a touch device (spec 4.6).
-    expect(requests.filter((u) => /three|Scene/i.test(u))).toEqual([])
+    const story = page.locator('section[aria-label="How a tooth works"]')
+    await expect(story).toHaveCount(1)
+
+    await story.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(2500)
+    await expect(story.locator('canvas')).toHaveCount(1)
+  })
+
+  test('the scroll story copy is reachable without a pointer', async ({ page }) => {
+    await page.goto('/')
+    const story = page.locator('section[aria-label="How a tooth works"]')
+    await expect(story).toContainText('Your tooth, explained')
   })
 })
 

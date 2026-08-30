@@ -1,6 +1,7 @@
 import { Container } from '@/components/ui/Container'
 import { ButtonLink } from '@/components/ui/Button'
 import { HeroCanvas } from '@/components/hero/HeroCanvas'
+import { ScrollStory } from '@/components/scrollstory/ScrollStory'
 import { Reveal } from '@/components/motion/Reveal'
 import { Services } from '@/components/sections/Services'
 import { Achievements } from '@/components/sections/Achievements'
@@ -51,6 +52,8 @@ export default function Home() {
           </Reveal>
         </div>
       </Container>
+
+      <ScrollStory />
 
       <Services limit={6} />
       <Achievements stats={statsHome} />
