@@ -8,6 +8,36 @@ across a conversation and drift between them, and consistency matters more here
 than any single image being perfect. If one comes out wrong, regenerate it in
 the same session rather than starting fresh later.
 
+## Which tool
+
+ChatGPT's free tier allows roughly 2-3 images per 24 hours, which would spread
+this set over three or four days and guarantee style drift between them. Free
+alternatives with room to do it in one sitting:
+
+  Google Gemini          ~20 / day
+  Bing Image Creator     15 fast / day, then a slow queue
+  Leonardo               150 tokens / day, about 15-35 images
+  ChatGPT                2-3 / day
+
+Gemini is the practical choice for a set this size. Note that providers change
+these limits often, and OpenAI publishes no official figure at all.
+
+## If you are rate limited, generate in this order
+
+Image 4 alone yields five layers and carries four beats, so three images are
+enough for a complete working sequence:
+
+  1st   #4 exploded tooth   five layers, four beats
+  2nd   #5 whole tooth      hero and closing beat
+  3rd   #1 skull            opening of the zoom journey
+
+The service images (#6-9) are enrichment. Each beat already carries its own
+copy and pricing, so they fall back to the tooth images until you add them.
+
+#4 and #5 MUST be generated back to back in the same session - they share a
+camera angle, and that is what lets the hero crossfade into the exploded
+sequence without jumping. The rest can drift a little without hurting.
+
 ---
 
 ## The style block
