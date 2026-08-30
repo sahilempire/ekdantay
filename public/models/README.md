@@ -36,3 +36,31 @@ Once both files are here:
 That merges them and derives the enamel and dentin shells by offsetting the
 outer surface inward along its normals, emitting `tooth.glb` with four named
 meshes (enamel, dentin, pulp, root) for the exploded view. No Blender needed.
+
+---
+
+## Candidate replacement: "Inside my Tooth" (R-LAB)
+
+https://sketchfab.com/3d-models/inside-my-tooth-5ebeadf0b40940ca93a4ced5cfe0abb2
+
+CC BY 4.0, downloadable, 56,471 faces, 4 materials. Its description states:
+"The tooth gums and blood vessels are individual objects so you can hide
+sections of the model for your demonstration."
+
+Download the **GLB** and save as `public/models/inside-tooth.glb`, then run:
+
+    node scripts/inspect-model.mjs public/models/inside-tooth.glb
+
+That reports every mesh name, triangle count, material and watertightness, so
+we can map its parts before wiring anything in. Material count on the Sketchfab
+page only hints at internal structure; this confirms it.
+
+Notes for when it lands:
+- The gums are NOT wanted. They are a separate object, so the fix is to omit
+  that mesh rather than edit geometry.
+- It ships 28 textures, which would dominate file size. Strip them; every layer
+  gets its own material in ToothModel, so the source textures are unused.
+
+ATTRIBUTION (required, CC BY 4.0) if this model is adopted:
+
+    "Inside my Tooth" by R-LAB, licensed under CC BY 4.0
