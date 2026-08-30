@@ -1,5 +1,5 @@
 /**
- * The scroll sequence — now the whole top of the page, not one section.
+ * The scroll sequence: the whole top of the page, not one section.
  *
  * Modelled on oryzo.ai: a single continuous 3D scene the camera flies through,
  * each beat pairing a camera position with a copy block, a technical readout,
@@ -31,7 +31,7 @@ export interface Beat {
   focus?: 'enamel' | 'dentin' | 'pulp' | 'root' | null
   /**
    * Ground colour for this beat, as a CSS value. The page darkens through the
-   * middle of the sequence and resolves back to paper — the shifting ground is
+   * middle of the sequence and resolves back to paper. That shifting ground is
    * most of why a scroll sequence reads as cinematic rather than as a long page.
    */
   bg: string
@@ -39,6 +39,13 @@ export interface Beat {
   ink: string
   /** True when `bg` is dark, so chrome above the stage can invert. */
   dark?: boolean
+  /**
+   * Where the model sits in frame, in world units. The hero pushes it right so
+   * it shares the viewport with the headline rather than sitting under it; the
+   * layer beats bring it back toward centre as the camera closes in and it
+   * becomes the subject rather than the backdrop.
+   */
+  offset?: { x: number; y: number }
   /** Which side the copy sits on, so the composition is not static. */
   side?: 'left' | 'right'
   /** Marks the opening beat, which renders the hero rather than body copy. */
@@ -52,8 +59,9 @@ export const BEATS: Beat[] = [
     at: 0,
     eyebrow: 'Sawai Madhopur, Rajasthan',
     title: 'Modern Dentistry in a Calm and Relaxed Environment',
-    body: 'Gentle, unhurried dental care — from routine cleanings to implants and orthodontics.',
+    body: 'Gentle, unhurried dental care, from routine cleanings to implants and orthodontics.',
     camera: { x: 0, y: 0, z: 7.6 },
+    offset: { x: 1.75, y: 0 },
     explode: 0,
     focus: null,
     bg: 'var(--paper)',
@@ -65,8 +73,9 @@ export const BEATS: Beat[] = [
     at: 0.14,
     eyebrow: 'Start here',
     title: 'Your tooth, explained',
-    body: 'Most people have never seen what a dentist actually does. Scroll, and we will show you — layer by layer.',
+    body: 'Most people have never seen what a dentist actually does. Scroll, and we will show you, layer by layer.',
     camera: { x: -0.9, y: 0.2, z: 5.6 },
+    offset: { x: -1.1, y: 0 },
     explode: 0,
     focus: null,
     bg: 'var(--surface)',
@@ -78,9 +87,10 @@ export const BEATS: Beat[] = [
     at: 0.28,
     eyebrow: 'The outer shell',
     title: 'Enamel',
-    body: 'The hardest tissue in your body — and the part that stains. Professional whitening lifts years of tea and tobacco without touching what is underneath.',
+    body: 'The hardest tissue in your body, and the part that stains. Professional whitening lifts years of tea and tobacco without touching what is underneath.',
     readout: { label: 'Whitening', value: '₹3,500 / session' },
     camera: { x: 1.15, y: 1.5, z: 4.3 },
+    offset: { x: 0.9, y: 0 },
     target: { x: 0, y: 0.9, z: 0 },
     explode: 0.3,
     focus: 'enamel',
@@ -93,9 +103,10 @@ export const BEATS: Beat[] = [
     at: 0.42,
     eyebrow: 'Beneath the surface',
     title: 'Dentin',
-    body: 'Softer, and full of microscopic tubules. Once decay reaches here it moves fast — which is why a cleaning and a filling now costs a fraction of what waiting costs.',
+    body: 'Softer, and full of microscopic tubules. Once decay reaches here it moves fast, which is why a cleaning and a filling now costs a fraction of what waiting costs.',
     readout: { label: 'Checkup & clean', value: '₹800 / visit' },
     camera: { x: -1.5, y: 0.6, z: 4.0 },
+    offset: { x: -0.8, y: 0 },
     target: { x: 0, y: 0.2, z: 0 },
     explode: 0.55,
     focus: 'dentin',
@@ -112,6 +123,7 @@ export const BEATS: Beat[] = [
     body: 'Nerves and blood vessels. This is where toothache comes from, and where a root canal goes. Modern anaesthesia means you feel pressure, not pain.',
     readout: { label: 'Pain-free treatment', value: 'Same day' },
     camera: { x: 1.0, y: -0.1, z: 3.4 },
+    offset: { x: 0.7, y: 0 },
     target: { x: 0, y: -0.15, z: 0 },
     explode: 0.78,
     focus: 'pulp',
@@ -125,9 +137,10 @@ export const BEATS: Beat[] = [
     at: 0.7,
     eyebrow: 'The anchor',
     title: 'Root',
-    body: 'Set into the jaw. When a tooth cannot be saved, an implant replaces the root itself — so the replacement bites, and lasts, like the original.',
+    body: 'Set into the jaw. When a tooth cannot be saved, an implant replaces the root itself, so the replacement bites, and lasts, like the original.',
     readout: { label: 'Dental implant', value: '₹25,000 / tooth' },
     camera: { x: -1.1, y: -1.5, z: 4.2 },
+    offset: { x: -0.7, y: 0 },
     target: { x: 0, y: -2.4, z: 0 },
     explode: 1,
     focus: 'root',
@@ -141,9 +154,10 @@ export const BEATS: Beat[] = [
     at: 0.84,
     eyebrow: 'Position matters',
     title: 'Alignment',
-    body: 'Crowded teeth trap what a brush cannot reach. Straightening is not only cosmetic — it is the cheapest long-term way to keep the layers above intact.',
+    body: 'Crowded teeth trap what a brush cannot reach. Straightening is not only cosmetic. It is the cheapest long-term way to keep the layers above intact.',
     readout: { label: 'Orthodontics', value: '₹45,000 / treatment' },
     camera: { x: 0.9, y: 0.7, z: 5.2 },
+    offset: { x: 0.9, y: 0 },
     target: { x: 0, y: 0.3, z: 0 },
     explode: 0.35,
     focus: 'enamel',
@@ -159,6 +173,7 @@ export const BEATS: Beat[] = [
     title: 'Book a visit',
     body: 'Ten minutes in the chair is usually all it takes to know where you stand. No obligation, no lecture.',
     camera: { x: 0, y: 0, z: 6.6 },
+    offset: { x: 0.9, y: 0 },
     explode: 0,
     focus: null,
     bg: 'var(--paper)',

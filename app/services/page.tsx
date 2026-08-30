@@ -18,7 +18,8 @@ export default function ServicesPage() {
       <PageHero title="Our Service Keeps you Smile" crumb="Services" />
       <Services />
       <Achievements stats={statsInner} />
-      <PricingTable tiers={pricingUSD} />
+      {/* Pricing section commented out at the client's request. */}
+      {/* <PricingTable tiers={pricingUSD} /> */}
     </main>
   )
 }

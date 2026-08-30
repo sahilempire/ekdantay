@@ -9,7 +9,7 @@ import { pricingUSD } from '@/content/pricing'
 export const metadata: Metadata = {
   title: 'Our Doctors',
   description:
-    'Meet the team at Ekdantay Dental Clinic — Dr. Divya Bharti, Dr. Yamini Sharma and the wider clinic staff.',
+    'Meet the team at Ekdantay Dental Clinic: Dr. Divya Bharti, Dr. Yamini Sharma and the wider clinic staff.',
 }
 
 export default function DoctorsPage() {
@@ -18,7 +18,8 @@ export default function DoctorsPage() {
       <PageHero title="Meet Our Experience Dentist" crumb="Doctors" />
       <TeamGrid title="Meet Our Experience Dentist" />
       <Achievements stats={statsInner} />
-      <PricingTable tiers={pricingUSD} />
+      {/* Pricing section commented out at the client's request. */}
+      {/* <PricingTable tiers={pricingUSD} /> */}
     </main>
   )
 }

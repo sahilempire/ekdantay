@@ -10,7 +10,7 @@ import { clinic } from '@/content/clinic'
 
 export const metadata: Metadata = {
   title: 'About Us',
-  description: `About ${clinic.name} — a dental practice in Sawai Madhopur, Rajasthan, offering unhurried care in a calm environment.`,
+  description: `About ${clinic.name}, a dental practice in Sawai Madhopur, Rajasthan, offering unhurried care in a calm environment.`,
 }
 
 const PILLARS = [

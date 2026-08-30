@@ -30,8 +30,8 @@ const figtree = Figtree({
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.ekdantay.com'),
   title: {
-    default: `${clinic.name} — ${clinic.tagline}`,
-    template: `%s — ${clinic.name}`,
+    default: `${clinic.name} | ${clinic.tagline}`,
+    template: `%s | ${clinic.name}`,
   },
   description:
     'Dental care in Sawai Madhopur, Rajasthan. Cleanings, whitening, orthodontics, implants and emergency treatment.',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     siteName: clinic.name,
-    title: `${clinic.name} — ${clinic.tagline}`,
+    title: `${clinic.name} | ${clinic.tagline}`,
     description:
       'Dental care in Sawai Madhopur, Rajasthan. Cleanings, whitening, orthodontics, implants and emergency treatment.',
   },

@@ -24,7 +24,10 @@ export default function Home() {
       <Services limit={6} />
       <Achievements stats={statsHome} />
       <TeamGrid limit={4} />
-      <PricingTable tiers={pricingINR} blurb="Clear, upfront pricing for our most common treatments." />
+      {/* Pricing section commented out at the client's request. The rupee
+          tiers still live in content/pricing.ts, so restoring it is
+          uncommenting this line. */}
+      {/* <PricingTable tiers={pricingINR} blurb="Clear, upfront pricing for our most common treatments." /> */}
       <RecentPosts limit={3} />
 
       <section aria-label="Clinic location" className="border-t border-line">

@@ -77,7 +77,7 @@ export function parseDateInput(value: string): Date | null {
 
 /** The opening-hours lines shown in the header and footer. */
 export function hoursSummary(): { label: string; value: string }[] {
-  const fmt = (h: DayHours) => `${formatSlot(h.open)} — ${formatSlot(h.close)}`
+  const fmt = (h: DayHours) => `${formatSlot(h.open)} to ${formatSlot(h.close)}`
   return [
     { label: clinic.hours.weekdays.label, value: fmt(clinic.hours.weekdays) },
     { label: clinic.hours.sunday.label, value: fmt(clinic.hours.sunday) },

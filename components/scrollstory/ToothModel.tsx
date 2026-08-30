@@ -38,6 +38,16 @@ const TRAVEL: Record<LayerKey, number> = {
   root: -0.8,
 }
 
+/** Per-layer surface treatment. Enamel is glossy and slightly translucent. */
+const LOOK: Record<LayerKey, { color: string; roughness: number; clearcoat: number }> = {
+  enamel: { color: '#FAF6EF', roughness: 0.13, clearcoat: 1 },
+  dentin: { color: '#E6D2B4', roughness: 0.58, clearcoat: 0.25 },
+  pulp: { color: '#C4635A', roughness: 0.72, clearcoat: 0 },
+  // Close to enamel on purpose: a real crown/root colour break is subtle,
+  // and a strong one reads as the tooth being split rather than shaded.
+  root: { color: '#F6F1E8', roughness: 0.42, clearcoat: 0.45 },
+}
+
 const GLOW: Record<LayerKey, string> = {
   enamel: '#E8A94E',
   dentin: '#E8A94E',
@@ -90,23 +100,44 @@ export function ToothModel({ src, progressRef, scale = 1 }: Props) {
       o.castShadow = true
       o.receiveShadow = true
 
-      // Materials are shared across clones by default; give each mesh its own
-      // so per-layer emissive changes do not bleed between them.
-      if (Array.isArray(o.material)) o.material = o.material.map((m) => m.clone())
-      else o.material = o.material.clone()
-
       const layer = classify(o.name)
+
       if (layer) {
-        const mat = o.material as THREE.MeshStandardMaterial
-        if ('emissive' in mat) mat.emissive = new THREE.Color(GLOW[layer])
+        /**
+         * Replace the GLB's material outright rather than cloning it.
+         *
+         * glTF materials load as MeshStandardMaterial, which has no
+         * `transmission` - so driving enamel transparency against it silently
+         * did nothing. MeshPhysicalMaterial is what actually carries
+         * transmission and clearcoat, which are the two properties that make
+         * enamel read as enamel rather than as white plastic.
+         */
+        o.material = new THREE.MeshPhysicalMaterial({
+          color: LOOK[layer].color,
+          roughness: LOOK[layer].roughness,
+          metalness: 0,
+          clearcoat: LOOK[layer].clearcoat,
+          clearcoatRoughness: 0.2,
+          emissive: new THREE.Color(GLOW[layer]),
+          emissiveIntensity: 0,
+          side: layer === 'pulp' ? THREE.DoubleSide : THREE.FrontSide,
+        })
         found.push({ mesh: o, layer, home: o.position.clone() })
+      } else {
+        if (Array.isArray(o.material)) o.material = o.material.map((m) => m.clone())
+        else o.material = o.material.clone()
       }
     })
 
     return { root: clone, parts: found }
   }, [scene])
 
-  const anim = useRef({ explode: 0, glow: { enamel: 0, dentin: 0, pulp: 0, root: 0 } })
+  const anim = useRef({
+    explode: 0,
+    offsetX: 0,
+    offsetY: 0,
+    glow: { enamel: 0, dentin: 0, pulp: 0, root: 0 },
+  })
 
   useEffect(() => {
     if (parts.length === 0) {
@@ -134,13 +165,39 @@ export function ToothModel({ src, progressRef, scale = 1 }: Props) {
     if (group.current) {
       group.current.rotation.y = progress * Math.PI * 1.35
       group.current.rotation.z = Math.sin(progress * Math.PI) * 0.12
+
+      // Slide the model between beats so it never sits under the copy.
+      const off = beat.offset ?? { x: 0, y: 0 }
+      a.offsetX += (off.x - a.offsetX) * k
+      a.offsetY += (off.y - a.offsetY) * k
+      group.current.position.x = a.offsetX
+      group.current.position.y = a.offsetY
     }
 
     for (const { mesh, layer, home } of parts) {
       mesh.position.y = home.y + a.explode * TRAVEL[layer]
-      const mat = mesh.material as THREE.MeshStandardMaterial
+      const mat = mesh.material as THREE.MeshPhysicalMaterial
       if ('emissiveIntensity' in mat) {
         mat.emissiveIntensity = (layer === 'pulp' ? 0.15 : 0) + a.glow[layer] * 0.5
+      }
+
+      /**
+       * The enamel is OPAQUE while the tooth is whole, and clarifies only as
+       * the layers separate.
+       *
+       * Capping the cut leaves internal cap faces sitting inside the assembly.
+       * A translucent enamel shows them straight through, which draws a
+       * horizontal line across an intact tooth and reads as a crack. Once the
+       * halves have actually moved apart those same faces are the cut surfaces
+       * you want to see, so the transparency follows explode rather than being
+       * a constant.
+       */
+      if (layer === 'enamel' && 'transmission' in mat) {
+        const open = Math.min(a.explode * 2.2, 1)
+        mat.transmission = open * 0.55
+        mat.opacity = 1 - open * 0.25
+        mat.transparent = open > 0.01
+        mat.thickness = 1.1
       }
     }
   })

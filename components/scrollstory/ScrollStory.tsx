@@ -216,7 +216,7 @@ export function ScrollStory() {
           </motion.div>
         </Container>
 
-        {/* Beat rail — where you are in the sequence. */}
+        {/* Beat rail: where you are in the sequence. */}
         <div className="pointer-events-none absolute right-6 top-1/2 hidden -translate-y-1/2 flex-col gap-3 sm:flex">
           {BEATS.map((b, i) => (
             <motion.span

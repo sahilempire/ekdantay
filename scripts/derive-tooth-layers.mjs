@@ -368,7 +368,7 @@ function recomputeNormals(position, index) {
  * closed solid with a flat cut face - which is what a sectioned anatomical
  * model actually looks like.
  */
-function sliceAndCap(position, index, normal, planeY) {
+function sliceAndCap(position, index, normal, planeY, capInset = 0) {
   const tris = index ? index.length / 3 : position.length / 9
   const above = { position: [], normal: [] }
   const below = { position: [], normal: [] }
@@ -478,13 +478,18 @@ function sliceAndCap(position, index, normal, planeY) {
       let cx = 0
       let cz = 0
       for (const p of loop) { cx += p[0]; cz += p[2] }
-      const centre = [cx / loop.length, planeY, cz / loop.length]
+      // Each cap sits just inside its own half, so the two are never coplanar.
+      const upCentre = [cx / loop.length, planeY + capInset, cz / loop.length]
+      const dnCentre = [cx / loop.length, planeY - capInset, cz / loop.length]
+      const lift = (p, dy) => [p[0], p[1] + dy, p[2]]
 
       for (let i = 0; i < loop.length; i++) {
         const p = loop[i]
         const q = loop[(i + 1) % loop.length]
-        push(above, [centre, q, p], [[0, -1, 0], [0, -1, 0], [0, -1, 0]])
-        push(below, [centre, p, q], [[0, 1, 0], [0, 1, 0], [0, 1, 0]])
+        push(above, [upCentre, lift(q, capInset), lift(p, capInset)],
+             [[0, -1, 0], [0, -1, 0], [0, -1, 0]])
+        push(below, [dnCentre, lift(p, -capInset), lift(q, -capInset)],
+             [[0, 1, 0], [0, 1, 0], [0, 1, 0]])
         capped++
       }
     }
@@ -552,10 +557,23 @@ const crownFraction = (cej.maxY - cej.y) / TARGET_HEIGHT
 console.log(`  CEJ found at y=${cej.y.toFixed(3)} (crown is top ${(crownFraction * 100).toFixed(0)}% of height)`)
 
 // Split the shell into enamel (crown) and root.
-const sliced = sliceAndCap(shell.position, shellRaw.index, shellRaw.normal, cej.y)
+/**
+ * One cut plane, with the cap faces inset into each half.
+ *
+ * An earlier attempt cut the halves at two slightly different planes so they
+ * would overlap and hide the seam. That is exactly wrong: both shells then
+ * carry surface geometry through the same band, and coincident surfaces
+ * z-fight into the very line it was meant to remove.
+ *
+ * Cutting at a single plane makes the two shells meet at an edge rather than
+ * overlap. The remaining risk is the two cap discs being coplanar back to
+ * back, so each is pushed a hair into its own half's interior, where it is
+ * hidden by that half's own surface until the layers separate.
+ */
+const sliced = sliceAndCap(shell.position, shellRaw.index, shellRaw.normal, cej.y, TARGET_HEIGHT * 0.006)
 const enamel = sliced.above
 const root = sliced.below
-console.log(`  cut:    ${sliced.loops} closed loop(s), ${sliced.capSegments.toLocaleString()} cap triangles`)
+console.log(`  cut:    ${sliced.loops} loop(s), caps inset to avoid coplanar z-fight`)
 console.log(`  enamel: ${(enamel.position.length / 9).toLocaleString()} tris`)
 console.log(`  root:   ${(root.position.length / 9).toLocaleString()} tris`)
 

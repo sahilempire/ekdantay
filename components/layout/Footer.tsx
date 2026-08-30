@@ -156,7 +156,7 @@ export function Footer() {
                 {i < modelCredits.length - 1 ? '; ' : ' '}
               </span>
             ))}
-            &mdash;{' '}
+            &middot;{' '}
             <a
               href={MODEL_LICENSE_URL}
               target="_blank"

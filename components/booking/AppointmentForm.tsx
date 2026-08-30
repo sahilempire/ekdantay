@@ -149,7 +149,7 @@ export function AppointmentForm({ onDone }: { onDone?: () => void }) {
         <textarea
           id={id("message")} rows={3} className={field} value={values.message}
           onChange={(e) => set('message', e.target.value)}
-          placeholder="Optional — symptoms, concerns, or questions"
+          placeholder="Optional: symptoms, concerns, or questions"
         />
       </div>
 

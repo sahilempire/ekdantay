@@ -31,7 +31,7 @@ export const clinic: Clinic = {
   },
 
   hours: {
-    weekdays: { label: 'Monday — Saturday', open: '10:30', close: '17:30' },
+    weekdays: { label: 'Monday to Saturday', open: '10:30', close: '17:30' },
     sunday: { label: 'Sunday', open: '12:00', close: '16:00' },
     emergency: 'Available 24/7 for dental emergencies',
   },
