@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { getSlotsForDate, formatSlot, todayISO, parseDateInput } from '@/lib/hours'
 import { buildWhatsAppUrl, type BookingData } from '@/lib/whatsapp'
@@ -15,8 +15,10 @@ import { Button } from '@/components/ui/Button'
  * match, so the modal form read the hero form's empty inputs and every
  * submission failed validation - the site's main conversion path was dead.
  *
- * React-scoped state removes the shared namespace entirely, so that failure
- * cannot recur no matter how many times this is rendered.
+ * Two things are needed to make that impossible rather than merely unlikely:
+ * React-scoped state, and useId() so the DOM ids are unique per instance.
+ * State alone is not enough - the first version of this component hardcoded
+ * its ids and reproduced the original collision, which the test suite caught.
  */
 
 const field =
@@ -27,6 +29,13 @@ const label = 'block text-sm font-medium mb-1.5'
 type Errors = Partial<Record<keyof BookingData, string>>
 
 export function AppointmentForm({ onDone }: { onDone?: () => void }) {
+  // Scopes every input id to this instance. Without it, rendering the form
+  // twice on one page recreates the exact duplicate-id collision that broke
+  // the legacy site - React-scoped *state* is not enough on its own, the DOM
+  // ids have to be unique too.
+  const uid = useId()
+  const id = (name: string) => `${uid}-${name}`
+
   const [values, setValues] = useState<BookingData>({
     name: '', phone: '', service: '', date: '', time: '', message: '',
   })
@@ -69,34 +78,34 @@ export function AppointmentForm({ onDone }: { onDone?: () => void }) {
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className={label} htmlFor="bk-name">Full name *</label>
+          <label className={label} htmlFor={id("name")}>Full name *</label>
           <input
-            id="bk-name" className={field} value={values.name}
+            id={id("name")} className={field} value={values.name}
             onChange={(e) => set('name', e.target.value)}
             aria-invalid={!!errors.name}
-            aria-describedby={errors.name ? 'bk-name-err' : undefined}
+            aria-describedby={errors.name ? id('name-err') : undefined}
             placeholder="Your name"
           />
-          {errors.name && <p id="bk-name-err" className="mt-1 text-xs text-danger">{errors.name}</p>}
+          {errors.name && <p id={id('name-err')} className="mt-1 text-xs text-danger">{errors.name}</p>}
         </div>
 
         <div>
-          <label className={label} htmlFor="bk-phone">Phone number *</label>
+          <label className={label} htmlFor={id("phone")}>Phone number *</label>
           <input
-            id="bk-phone" type="tel" className={field} value={values.phone}
+            id={id("phone")} type="tel" className={field} value={values.phone}
             onChange={(e) => set('phone', e.target.value)}
             aria-invalid={!!errors.phone}
-            aria-describedby={errors.phone ? 'bk-phone-err' : undefined}
+            aria-describedby={errors.phone ? id('phone-err') : undefined}
             placeholder="+91 "
           />
-          {errors.phone && <p id="bk-phone-err" className="mt-1 text-xs text-danger">{errors.phone}</p>}
+          {errors.phone && <p id={id('phone-err')} className="mt-1 text-xs text-danger">{errors.phone}</p>}
         </div>
       </div>
 
       <div>
-        <label className={label} htmlFor="bk-service">Service</label>
+        <label className={label} htmlFor={id("service")}>Service</label>
         <select
-          id="bk-service" className={field} value={values.service}
+          id={id("service")} className={field} value={values.service}
           onChange={(e) => set('service', e.target.value)}
         >
           <option value="">Select a service</option>
@@ -108,9 +117,9 @@ export function AppointmentForm({ onDone }: { onDone?: () => void }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className={label} htmlFor="bk-date">Preferred date *</label>
+          <label className={label} htmlFor={id("date")}>Preferred date *</label>
           <input
-            id="bk-date" type="date" className={field} value={values.date}
+            id={id("date")} type="date" className={field} value={values.date}
             min={todayISO()}
             onChange={(e) => { set('date', e.target.value); set('time', '') }}
             aria-invalid={!!errors.date}
@@ -119,9 +128,9 @@ export function AppointmentForm({ onDone }: { onDone?: () => void }) {
         </div>
 
         <div>
-          <label className={label} htmlFor="bk-time">Preferred time *</label>
+          <label className={label} htmlFor={id("time")}>Preferred time *</label>
           <select
-            id="bk-time" className={field} value={values.time}
+            id={id("time")} className={field} value={values.time}
             onChange={(e) => set('time', e.target.value)}
             disabled={!values.date}
             aria-invalid={!!errors.time}
@@ -136,9 +145,9 @@ export function AppointmentForm({ onDone }: { onDone?: () => void }) {
       </div>
 
       <div>
-        <label className={label} htmlFor="bk-message">Anything we should know?</label>
+        <label className={label} htmlFor={id("message")}>Anything we should know?</label>
         <textarea
-          id="bk-message" rows={3} className={field} value={values.message}
+          id={id("message")} rows={3} className={field} value={values.message}
           onChange={(e) => set('message', e.target.value)}
           placeholder="Optional — symptoms, concerns, or questions"
         />
