@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Container } from '@/components/ui/Container'
 import { ScrollStory } from '@/components/scrollstory/ScrollStory'
 import { Marquee } from '@/components/motion/Marquee'
@@ -11,10 +12,17 @@ import { clinic } from '@/content/clinic'
 import { services } from '@/content/services'
 import { statsHome } from '@/content/stats'
 import { pricingINR } from '@/content/pricing'
+import { JsonLd, clinicNode, websiteNode } from '@/components/JsonLd'
+import { pageUrl } from '@/lib/seo'
+
+/* Title and description come from the root layout's defaults; only the
+   canonical is page-specific. Every route sets its own now, see lib/seo. */
+export const metadata: Metadata = pageUrl('/')
 
 export default function Home() {
   return (
     <main id="main">
+      <JsonLd nodes={[clinicNode(), websiteNode()]} />
       <ScrollStory />
 
       <section aria-hidden className="border-y border-line bg-surface">

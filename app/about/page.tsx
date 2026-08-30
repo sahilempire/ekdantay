@@ -7,10 +7,13 @@ import { SectionHeading } from '@/components/ui/SectionHeading'
 import { Reveal } from '@/components/motion/Reveal'
 import { statsInner } from '@/content/stats'
 import { clinic } from '@/content/clinic'
+import { JsonLd, clinicNode, websiteNode, breadcrumbNode } from '@/components/JsonLd'
+import { pageUrl } from '@/lib/seo'
 
 export const metadata: Metadata = {
-  title: 'About Us',
-  description: `About ${clinic.name}, a dental practice in Sawai Madhopur, Rajasthan, offering unhurried care in a calm environment.`,
+  title: 'About Our Dental Clinic',
+  description: `About ${clinic.name}, a dental practice in Sawai Madhopur, Rajasthan. Qualified dentists, modern equipment and unhurried care in a calm environment.`,
+  ...pageUrl('/about'),
 }
 
 const PILLARS = [
@@ -22,6 +25,16 @@ const PILLARS = [
 export default function AboutPage() {
   return (
     <main id="main">
+      <JsonLd
+        nodes={[
+          clinicNode(),
+          websiteNode(),
+          breadcrumbNode([
+            { name: 'Home', path: '/' },
+            { name: 'About', path: '/about' },
+          ]),
+        ]}
+      />
       <PageHero title="About Us" crumb="About" />
       <Container className="py-20">
         <SectionHeading

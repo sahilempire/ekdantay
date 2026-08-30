@@ -30,6 +30,17 @@ export const clinic: Clinic = {
       'Ekdantay Dental Clinic, 8 Janta dharmshala, near Mahila Thana, Housing Board, Sawai Madhopur, Alanpur Rural, Rajasthan 322001',
   },
 
+  /*
+    Coordinates are intentionally absent until someone reads them off the
+    clinic's own Google Business Profile. Adding
+
+      geo: { lat: 26.0173, lng: 76.3453 },
+
+    would emit a `geo` property in the LocalBusiness structured data and drop
+    a pin at whatever was typed here, so an approximation would be worse than
+    nothing. Fill it in from the real listing and it starts being emitted.
+  */
+
   hours: {
     weekdays: { label: 'Monday to Saturday', open: '10:30', close: '17:30' },
     sunday: { label: 'Sunday', open: '12:00', close: '16:00' },

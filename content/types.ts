@@ -33,6 +33,13 @@ export interface Clinic {
     /** Query string for the Google Maps embed. No API key involved. */
     mapQuery: string
   }
+  /**
+   * Exact clinic coordinates, for the `geo` property of the LocalBusiness
+   * structured data. Deliberately optional and currently unset: putting a
+   * guessed lat/long into schema.org markup is worse than omitting it, because
+   * Google will happily place the map pin where you told it to.
+   */
+  geo?: { lat: number; lng: number }
   hours: {
     weekdays: DayHours
     sunday: DayHours
@@ -87,14 +94,69 @@ export interface Testimonial {
   quote: string
 }
 
+/**
+ * One piece of an article body.
+ *
+ * Articles are structured blocks rather than a string of HTML for two
+ * reasons: nothing user-authored is ever passed to dangerouslySetInnerHTML,
+ * and the same `faq` array that renders on the page also feeds the FAQPage
+ * structured data, so the two can never disagree.
+ */
+export type Block =
+  | { kind: 'p'; text: string }
+  | { kind: 'h2'; text: string }
+  | { kind: 'h3'; text: string }
+  | { kind: 'ul'; items: string[] }
+  | { kind: 'ol'; items: string[] }
+  /** A boxed aside. Used sparingly, for the one thing a reader must not miss. */
+  | { kind: 'note'; title: string; text: string }
+  /** A pulled-out figure with the study or body it came from. */
+  | { kind: 'figure'; value: string; label: string; source: string }
+
+export interface Faq {
+  q: string
+  a: string
+}
+
+/** A citation. Every clinical claim in an article traces back to one. */
+export interface Source {
+  label: string
+  url: string
+}
+
 export interface Post {
   slug: string
+  /** The on-page h1. */
   title: string
-  /** ISO date. The legacy site displayed "Sep. 20, 2018". */
+  /** The <title> tag, when a search-facing headline reads better than the h1. */
+  seoTitle?: string
+  /** Meta description. Written per post; never derived from the excerpt. */
+  description: string
+  /** ISO date first published. */
   date: string
+  /** ISO date last reviewed. Google shows this, and health content needs it. */
+  updated?: string
   author: string
-  comments: number
+  /** Groups posts on the index and gives the breadcrumb its middle rung. */
+  category: string
   image: string
+  /** Never empty: these images carry meaning in an article context. */
+  imageAlt: string
   excerpt: string
-  body: string
+  body: Block[]
+  faq?: Faq[]
+  sources?: Source[]
+  /** Slugs of related posts. Internal links are most of a blog's SEO value. */
+  related?: string[]
+  /**
+   * The one service this article is the explainer for, if any.
+   *
+   * Singular and unique on purpose. It was a list, and the services grid
+   * resolved it with a `find`, so which article a service linked to depended
+   * on the order of the posts array: "Pain-Free Treatment" pointed at the
+   * wisdom teeth article rather than the root canal one purely because of
+   * where it sat in the list. A test asserts no two posts claim the same
+   * service, so the mapping cannot silently become ambiguous again.
+   */
+  service?: string
 }

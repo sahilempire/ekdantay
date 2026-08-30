@@ -1,6 +1,14 @@
 import { test, expect, type Page } from '@playwright/test'
 
-const ROUTES = ['/', '/about', '/services', '/doctors', '/blog', '/blog/post-1', '/contact']
+const ROUTES = [
+  '/',
+  '/about',
+  '/services',
+  '/doctors',
+  '/blog',
+  '/blog/how-a-cavity-forms',
+  '/contact',
+]
 
 /** Vercel Analytics only exists once deployed; it 404s locally by design. */
 const IGNORED = [/_vercel\/insights/]
@@ -130,6 +138,97 @@ test.describe('booking', () => {
     await page.goto('/contact')
     await page.getByRole('button', { name: /send booking/i }).click()
     await expect(page.getByText(/please tell us your name/i)).toBeVisible()
+  })
+})
+
+test.describe('search engine markup', () => {
+  /*
+    This suite exists because of a defect that shipped and went unnoticed.
+
+    `alternates.canonical: '/'` sat on the root layout, and Next inherits
+    alternates down the route tree, so every page emitted a canonical pointing
+    at the homepage. That instructs Google to treat /services, /contact and
+    every article as duplicates of / and drop them from the index. It is
+    invisible in a browser and fatal to a site's search traffic, so it is
+    asserted here rather than trusted.
+  */
+  for (const route of ROUTES) {
+    test(`${route} declares itself canonical, not the homepage`, async ({ page }) => {
+      await page.goto(route)
+      const href = await page.locator('link[rel="canonical"]').getAttribute('href')
+      expect(href, `no canonical on ${route}`).toBeTruthy()
+      expect(new URL(href!).pathname).toBe(route === '/' ? '/' : route)
+    })
+
+    test(`${route} has a unique, non-empty title and description`, async ({ page }) => {
+      await page.goto(route)
+      const title = await page.title()
+      expect(title.length).toBeGreaterThan(15)
+      const desc = await page
+        .locator('meta[name="description"]')
+        .getAttribute('content')
+      expect(desc, `no meta description on ${route}`).toBeTruthy()
+      expect(desc!.length).toBeGreaterThan(70)
+    })
+
+    test(`${route} emits valid JSON-LD naming the clinic`, async ({ page }) => {
+      await page.goto(route)
+      const blocks = await page.locator('script[type="application/ld+json"]').allTextContents()
+      expect(blocks.length).toBeGreaterThan(0)
+      const graph = blocks.map((b) => JSON.parse(b))
+      const types = graph.flatMap((g) => (g['@graph'] ?? []).map((n: { '@type': string }) => n['@type']))
+      expect(types).toContain('Dentist')
+    })
+  }
+
+  test('titles are unique across the site', async ({ page }) => {
+    const titles: string[] = []
+    for (const route of ROUTES) {
+      await page.goto(route)
+      titles.push(await page.title())
+    }
+    expect(new Set(titles).size).toBe(titles.length)
+  })
+
+  test('an article carries Article and FAQ markup with a named author', async ({ page }) => {
+    await page.goto('/blog/how-a-cavity-forms')
+    const raw = await page.locator('script[type="application/ld+json"]').first().textContent()
+    const nodes = JSON.parse(raw!)['@graph'] as Array<Record<string, unknown>>
+
+    const article = nodes.find((n) => n['@type'] === 'BlogPosting')
+    expect(article).toBeTruthy()
+    expect((article!.author as { name: string }).name).toContain('Dr.')
+    expect(article!.datePublished).toBeTruthy()
+
+    const faq = nodes.find((n) => n['@type'] === 'FAQPage')
+    expect((faq!.mainEntity as unknown[]).length).toBeGreaterThanOrEqual(3)
+
+    const crumbs = nodes.find((n) => n['@type'] === 'BreadcrumbList')
+    expect((crumbs!.itemListElement as unknown[]).length).toBe(3)
+  })
+
+  test('the sitemap lists every route and every article', async ({ page }) => {
+    const res = await page.goto('/sitemap.xml')
+    const xml = await res!.text()
+    for (const route of ROUTES) {
+      const path = route === '/' ? '' : route
+      expect(xml, `${route} missing from sitemap`).toContain(`ekdantay.com${path}<`)
+    }
+  })
+
+  test('robots.txt points at the sitemap and allows crawling', async ({ page }) => {
+    const res = await page.goto('/robots.txt')
+    const txt = await res!.text()
+    expect(txt).toContain('Allow: /')
+    expect(txt).toContain('Sitemap: https://www.ekdantay.com/sitemap.xml')
+  })
+
+  test('the site serves a favicon and a social card', async ({ page }) => {
+    await page.goto('/')
+    const icon = await page.locator('link[rel="icon"]').first().getAttribute('href')
+    expect(icon).toBeTruthy()
+    const og = await page.locator('meta[property="og:image"]').first().getAttribute('content')
+    expect(og, 'no og:image, so shares render as a bare link').toBeTruthy()
   })
 })
 

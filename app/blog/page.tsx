@@ -1,46 +1,99 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import Image from 'next/image'
 import { PageHero } from '@/components/sections/PageHero'
 import { Container } from '@/components/ui/Container'
-import { Reveal } from '@/components/motion/Reveal'
-import { posts } from '@/content/posts'
+import { PostCard } from '@/components/blog/PostCard'
+import { JsonLd, clinicNode, websiteNode, breadcrumbNode } from '@/components/JsonLd'
+import { posts, categories } from '@/content/posts'
+import { absolute, pageUrl, ID } from '@/lib/seo'
 
 export const metadata: Metadata = {
-  title: 'Blog',
-  description: 'Notes and updates from Ekdantay Dental Clinic in Sawai Madhopur.',
+  title: 'Dental Health Articles',
+  description:
+    'Plain explanations of how teeth actually work and what dental treatment involves, written by the dentists at Ekdantay in Sawai Madhopur. Decay, gum disease, root canals, implants, braces and emergencies.',
+  ...pageUrl('/blog'),
+  openGraph: {
+    type: 'website',
+    title: 'Dental Health Articles',
+    description:
+      'Plain explanations of how teeth actually work and what dental treatment involves, from the dentists at Ekdantay in Sawai Madhopur.',
+  },
 }
 
 export default function BlogPage() {
+  const groups = categories().map((category) => ({
+    category,
+    items: posts.filter((p) => p.category === category),
+  }))
+
   return (
     <main id="main">
-      <PageHero title="Read Our Blog" crumb="Blog" />
+      <JsonLd
+        nodes={[
+          clinicNode(),
+          websiteNode(),
+          breadcrumbNode([
+            { name: 'Home', path: '/' },
+            { name: 'Blog', path: '/blog' },
+          ]),
+          {
+            '@type': 'Blog',
+            '@id': `${absolute('/blog')}#blog`,
+            name: 'Ekdantay Dental Health Articles',
+            description:
+              'Treatment explainers and dental health guides from Ekdantay Dental Clinic, Sawai Madhopur.',
+            publisher: { '@id': ID.clinic },
+            inLanguage: 'en-IN',
+            blogPost: posts.map((p) => ({
+              '@type': 'BlogPosting',
+              '@id': `${absolute(`/blog/${p.slug}`)}#article`,
+              headline: p.seoTitle ?? p.title,
+              url: absolute(`/blog/${p.slug}`),
+              datePublished: p.date,
+              author: { '@type': 'Person', name: p.author },
+            })),
+          },
+        ]}
+      />
+
+      <PageHero title="Dental health, explained" crumb="Blog" />
+
       <Container className="py-20">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post, i) => (
-            <Reveal key={post.slug} delay={(i % 3) * 0.06} as="article">
-              <Link href={`/blog/${post.slug}`} className="group block">
-                <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-surface-sunk">
-                  <Image
-                    src={post.image}
-                    alt=""
-                    fill
-                    sizes="(max-width: 640px) 90vw, 30vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <p className="mt-4 text-xs text-muted">
-                  {new Date(post.date).toLocaleDateString('en-IN', {
-                    day: 'numeric', month: 'short', year: 'numeric',
-                  })}{' '}
-                  · {post.author} · {post.comments} comments
-                </p>
-                <h2 className="mt-2 line-clamp-2 text-lg transition-colors group-hover:text-accent">
-                  {post.title}
+        <p className="max-w-2xl text-lg text-ink-soft">
+          Most dental advice is delivered as a list of rules with the reasoning left out. These
+          are the explanations underneath: what is actually happening inside a tooth, what the
+          research supports, and what it means for the decision in front of you.
+        </p>
+
+        {/* Grouped rather than a flat reverse-chronological wall. A clinic
+            blog is a reference library, not a news feed: someone arriving on
+            "bleeding gums" should see the rest of prevention next to it. */}
+        <div className="mt-16 flex flex-col gap-20">
+          {groups.map(({ category, items }) => (
+            <section key={category} aria-labelledby={`cat-${category.toLowerCase()}`}>
+              <div className="flex items-baseline justify-between gap-4 border-b border-line pb-4">
+                <h2
+                  id={`cat-${category.toLowerCase()}`}
+                  className="font-display text-sm font-semibold uppercase tracking-[0.16em] text-accent"
+                >
+                  {category}
                 </h2>
-                <p className="mt-2 line-clamp-3 text-sm text-ink-soft">{post.excerpt}</p>
-              </Link>
-            </Reveal>
+                <span className="tabular text-xs text-muted">
+                  {items.length} {items.length === 1 ? 'article' : 'articles'}
+                </span>
+              </div>
+
+              <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {items.map((post, i) => (
+                  <PostCard
+                    key={post.slug}
+                    post={post}
+                    delay={(i % 3) * 0.06}
+                    headingLevel={3}
+                    showCategory={false}
+                  />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       </Container>

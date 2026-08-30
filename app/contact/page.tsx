@@ -7,15 +7,28 @@ import { Container } from '@/components/ui/Container'
 import { Reveal } from '@/components/motion/Reveal'
 import { clinic } from '@/content/clinic'
 import { hoursSummary } from '@/lib/hours'
+import { JsonLd, clinicNode, websiteNode, breadcrumbNode } from '@/components/JsonLd'
+import { pageUrl } from '@/lib/seo'
 
 export const metadata: Metadata = {
-  title: 'Contact & Booking',
-  description: `Book an appointment at ${clinic.name}, Sawai Madhopur. Call ${clinic.phone.display} or send your booking on WhatsApp.`,
+  title: 'Contact & Book an Appointment',
+  description: `Book a dental appointment at ${clinic.name} in Sawai Madhopur. Call ${clinic.phone.display}, send your booking on WhatsApp, or find us near Mahila Thana, Housing Board.`,
+  ...pageUrl('/contact'),
 }
 
 export default function ContactPage() {
   return (
     <main id="main">
+      <JsonLd
+        nodes={[
+          clinicNode(),
+          websiteNode(),
+          breadcrumbNode([
+            { name: 'Home', path: '/' },
+            { name: 'Contact', path: '/contact' },
+          ]),
+        ]}
+      />
       <PageHero title="Contact Us" crumb="Contact" />
 
       <Container className="py-20">
