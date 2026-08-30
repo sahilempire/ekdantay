@@ -44,8 +44,9 @@ interface Scene {
 const SCENES: Record<string, Scene> = {
   hero: { image: '/images/sequence/skull.webp', scale: 1, alt: 'Human skull showing the teeth' },
   intro: { image: '/images/sequence/jaw.webp', scale: 1.2, alt: 'Lower jaw with a full arch of teeth' },
-  enamel: { layered: true, spread: 0.15, focus: 'enamel', scale: 1.1, alt: 'Tooth layers, enamel highlighted' },
-  whitening: { image: '/images/sequence/whitening.webp', scale: 1, alt: 'A tooth stained on one side and whitened on the other' },
+  // The whitening image IS the enamel story - staining sits in the enamel -
+  // so one beat carries both rather than repeating the same price twice.
+  enamel: { image: '/images/sequence/whitening.webp', scale: 1, alt: 'A tooth stained on one side and whitened on the other' },
   // The decay cross-section, not the layer stack: this beat's copy is about
   // decay reaching the dentin, and the image shows exactly that.
   dentin: { image: '/images/sequence/decay.webp', scale: 1.05, alt: 'Cross-section of a tooth with decay reaching the dentin' },
@@ -154,7 +155,7 @@ export function ImageStage({ progressRef }: { progressRef: React.RefObject<numbe
         }}
       >
         {/* Full-frame scenes: skull, jaw, braces, whole tooth. */}
-        {(['hero', 'intro', 'whitening', 'dentin', 'straighten', 'emergency', 'whole'] as const).map((id) => {
+        {(['hero', 'intro', 'enamel', 'dentin', 'straighten', 'emergency', 'whole'] as const).map((id) => {
           const s = SCENES[id]
           if (!s.image) return null
           const active = beatId === id

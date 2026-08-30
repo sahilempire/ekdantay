@@ -7,8 +7,8 @@ const box = await p.evaluate(() => {
   const s = document.querySelector('section[aria-label="Modern dentistry, explained"]')
   return { top: s.offsetTop, height: s.offsetHeight }
 })
-for (let i = 0; i < 10; i++) {
-  const y = box.top + (box.height - 1180) * (i / 9)
+for (let i = 0; i < 9; i++) {
+  const y = box.top + (box.height - 1180) * (i / 8)
   await p.evaluate((v) => window.scrollTo({ top: v, behavior: 'instant' }), y)
   await p.waitForTimeout(1600)
   await p.screenshot({ path: `/tmp/shots/wide-${i}.png` })
