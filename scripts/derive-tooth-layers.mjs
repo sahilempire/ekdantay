@@ -296,28 +296,68 @@ function findCEJ(position, slices = 120) {
 }
 
 /**
- * Laplacian smoothing: move each vertex toward the average of its neighbours.
+ * Laplacian smoothing over WELDED topology.
  *
- * The Dundee source is "created in ZBrush using CT Data", and CT reconstruction
- * bakes voxel slice terracing into the surface. Operates on the indexed mesh so
- * neighbours are real topological adjacency, not coincident duplicates.
+ * This is the bug that produced the "cracked tooth", and it is worth spelling
+ * out because it is invisible from the source data alone.
+ *
+ * The Dundee scan has 27,741 POSITION entries but only 27,594 distinct
+ * positions: 147 pairs of duplicate vertices sitting at exactly the same
+ * point, which is the ordinary way an exporter represents a UV or normal seam.
+ * The mesh is watertight - 0 boundary edges - because those pairs coincide.
+ *
+ * Smoothing over raw indices treats each duplicate as a separate vertex with
+ * its own neighbour set, so the two halves of every seam get averaged toward
+ * slightly different places and the seam pulls apart. The result is a visible
+ * tear running the length of the model, following the scan's UV seam, which
+ * reads exactly like a crack.
+ *
+ * The fix is to smooth over merged topology: collapse coincident positions to
+ * one representative, build adjacency on that, smooth, then write the result
+ * back to every duplicate so they stay coincident.
  */
 function smoothVertices(position, index, iterations = 4, strength = 0.55) {
   const n = position.length / 3
   if (!index) return position
 
-  const neighbours = Array.from({ length: n }, () => new Set())
+  // Merge coincident positions. Quantise so float noise cannot split a seam.
+  const keyOf = (i) =>
+    `${Math.round(position[i * 3] * 1e5)}_${Math.round(position[i * 3 + 1] * 1e5)}_${Math.round(position[i * 3 + 2] * 1e5)}`
+  const canonical = new Map()
+  const toCanon = new Int32Array(n)
+  for (let i = 0; i < n; i++) {
+    const k = keyOf(i)
+    if (!canonical.has(k)) canonical.set(k, canonical.size)
+    toCanon[i] = canonical.get(k)
+  }
+  const m = canonical.size
+  if (m < n) {
+    console.log(`  shell: merged ${n - m} duplicate seam vertices before smoothing`)
+  }
+
+  // One representative position per merged vertex.
+  let current = new Float32Array(m * 3)
+  for (let i = 0; i < n; i++) {
+    const c = toCanon[i]
+    current[c * 3] = position[i * 3]
+    current[c * 3 + 1] = position[i * 3 + 1]
+    current[c * 3 + 2] = position[i * 3 + 2]
+  }
+
+  // Adjacency on merged topology, so a seam has one neighbourhood, not two.
+  const neighbours = Array.from({ length: m }, () => new Set())
   for (let t = 0; t < index.length; t += 3) {
-    const [a, b, c] = [index[t], index[t + 1], index[t + 2]]
+    const a = toCanon[index[t]]
+    const b = toCanon[index[t + 1]]
+    const c = toCanon[index[t + 2]]
     neighbours[a].add(b); neighbours[a].add(c)
     neighbours[b].add(a); neighbours[b].add(c)
     neighbours[c].add(a); neighbours[c].add(b)
   }
 
-  let current = Float32Array.from(position)
   for (let it = 0; it < iterations; it++) {
     const next = Float32Array.from(current)
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < m; i++) {
       const nb = neighbours[i]
       if (nb.size === 0) continue
       let sx = 0, sy = 0, sz = 0
@@ -331,7 +371,16 @@ function smoothVertices(position, index, iterations = 4, strength = 0.55) {
     }
     current = next
   }
-  return current
+
+  // Scatter back, so duplicates remain exactly coincident.
+  const out = new Float32Array(position.length)
+  for (let i = 0; i < n; i++) {
+    const c = toCanon[i]
+    out[i * 3] = current[c * 3]
+    out[i * 3 + 1] = current[c * 3 + 1]
+    out[i * 3 + 2] = current[c * 3 + 2]
+  }
+  return out
 }
 
 /** Recompute vertex normals by area-weighted face-normal averaging. */
