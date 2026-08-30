@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { MapPin, Phone, Mail, Clock } from 'lucide-react'
 import { FacebookIcon, InstagramIcon } from '@/components/ui/BrandIcons'
-import { clinic } from '@/content/clinic'
+import { clinic, modelCredits, MODEL_LICENSE_URL } from '@/content/clinic'
 import { posts } from '@/content/posts'
 import { hoursSummary } from '@/lib/hours'
 import { Container } from '@/components/ui/Container'
@@ -139,6 +139,32 @@ export function Footer() {
         <div className="flex flex-col gap-2 border-t border-line py-8 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {year} {clinic.name}. All rights reserved.
+          </p>
+          <p className="max-w-md text-[11px] leading-relaxed">
+            3D anatomy:{' '}
+            {modelCredits.map((c, i) => (
+              <span key={c.title}>
+                <a
+                  href={c.source}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline transition-colors hover:text-accent"
+                >
+                  &ldquo;{c.title}&rdquo;
+                </a>{' '}
+                by {c.author}
+                {i < modelCredits.length - 1 ? '; ' : ' '}
+              </span>
+            ))}
+            &mdash;{' '}
+            <a
+              href={MODEL_LICENSE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline transition-colors hover:text-accent"
+            >
+              CC BY 4.0
+            </a>
           </p>
           <p>
             Website by{' '}

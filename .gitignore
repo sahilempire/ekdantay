@@ -13,3 +13,5 @@ next-env.d.ts
 /playwright-report/
 /coverage/
 /chromium_cli/
+public/models/tooth-shell.glb
+public/models/tooth-canals.glb

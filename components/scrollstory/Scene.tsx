@@ -12,7 +12,7 @@ import { BEATS, type Beat } from './beats'
  * Set to a path under /public once we have a licensed anatomical model, e.g.
  * '/models/tooth.glb'. Null keeps the procedural fallback.
  */
-const MODEL_SRC: string | null = null
+const MODEL_SRC: string | null = '/models/tooth.glb'
 
 /** Which beat a given scroll progress belongs to, and the blend toward the next. */
 function resolveBeat(p: number): Beat {
