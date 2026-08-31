@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { motion, useScroll } from 'motion/react'
 import { ChevronDown, Phone } from 'lucide-react'
-import { BEATS, resolveBeat, resolveBeatIndex } from './beats'
+import { BEATS, TOTAL_HOLD, resolveBeatIndex } from './beats'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { Container } from '@/components/ui/Container'
 import { ButtonLink } from '@/components/ui/Button'
@@ -128,7 +128,14 @@ export function ScrollStory() {
     <section
       ref={wrap}
       aria-label="Modern dentistry, explained"
-      style={{ height: `${BEATS.length * 100}vh` }}
+      /*
+        Height comes from the summed `hold` weights, not the beat count. The
+        four layer beats are one continuous movement with little to read, so
+        they hold less scroll than a treatment beat with a price to take in.
+        Counting beats instead would have made this 55% longer than the nine
+        beats it replaced, for the same reading time.
+      */
+      style={{ height: `${Math.round(TOTAL_HOLD * 100)}vh` }}
       className="relative"
     >
       <motion.div

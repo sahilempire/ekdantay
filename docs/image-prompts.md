@@ -1,6 +1,6 @@
 # Scroll sequence image prompts
 
-Nine images. The sequence zooms from a skull down to one tooth, then opens it
+Eleven images. The sequence zooms from a skull down to one tooth, then opens it
 layer by layer, and each layer is tied to a treatment the clinic actually sells.
 
 **Generate them all in one session, in this order.** Image models hold style
@@ -182,7 +182,59 @@ Straight-on front view.
 [STYLE BLOCK]
 ```
 
-## 9. Emergency care  →  24/7
+## 9. Root canal  →  pain-free treatment
+
+The first attempt at this came back as a HEALTHY tooth: enamel unbroken across
+the biting surface, and orange in the canals that read as living pulp. The
+prompt had asked for "orange-pink gutta-percha", which is almost exactly the
+colour of a healthy pulp, and buried the access cavity in a subclause. What
+fixes it is naming the access cavity in capitals, making the filling material
+a colour pulp never is, and stating the negative outright.
+
+```
+A single human lower molar tooth in vertical cross-section AFTER root canal
+treatment has been completed.
+
+The nerve has been REMOVED. Both root canals and the pulp chamber are packed
+solid with GUTTA-PERCHA: a dull terracotta orange-brown rubber, clearly
+darker and more saturated than the surrounding dentin, tapering to a point
+at the tip of each root.
+
+At the top, a wide ACCESS CAVITY has been drilled straight down through the
+white enamel and the dentin of the biting surface into the pulp chamber.
+That opening is sealed with a flat opaque WHITE composite filling, clearly
+visible as a distinct plug set into the chewing surface.
+
+NO pink or red soft tissue anywhere inside the tooth. NO blood vessels.
+NO nerve fibres. The inside of this tooth is not alive.
+
+Surrounding dentin warm ivory-cream, outer enamel glossy pearl white.
+Straight-on front view, same camera angle and scale as the whole tooth.
+
+[STYLE BLOCK]
+```
+
+## 10. Healthy cross-section  →  "One tooth, four layers"
+
+The rejected first attempt at #9, kept because it turned out to be the best
+image in the set for a different beat: it shows enamel, dentin, pulp and roots
+in one frame, so the explosion that follows pulls apart exactly what the reader
+was just looking at. It replaced the plain whole tooth on that beat.
+
+```
+A single human lower molar tooth in vertical cross-section, showing the
+pulp chamber and both root canals filled with soft tissue, the surrounding
+dentin warm ivory-cream, outer enamel glossy pearl white.
+Straight-on front view, same camera angle and scale as the whole tooth.
+
+[STYLE BLOCK]
+```
+
+It and #9 were generated four minutes apart in the same session, and their
+subject bounding boxes land within 6 pixels of each other. That is what one
+session buys: the same camera across generations.
+
+## 11. Emergency care  →  24/7
 
 ```
 A single human lower molar tooth with a visible vertical crack running from

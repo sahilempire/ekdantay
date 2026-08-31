@@ -1,209 +1,230 @@
 /**
  * The scroll sequence: the whole top of the page, not one section.
  *
- * `at` values are even eighths. They must not reach 1.0: a beat pinned at the
- * very end has a zero-width range and flashes past in a single instant, which
- * is what previously happened to the closing call to action.
+ * Two acts.
  *
- * Modelled on oryzo.ai: a single continuous 3D scene the camera flies through,
- * each beat pairing a camera position with a copy block, a technical readout,
- * and a ground colour. The difference is that every beat here is an actual
- * anatomical layer of the same tooth, so the sequence explains a real thing
- * rather than decorating a fictional one.
+ * Act one is anatomy. Skull, to jaw, to a cross-section, and then the tooth
+ * comes apart one layer at a time. No prices here, nothing being sold: the
+ * reader is being shown what is inside their own tooth.
  *
- * `at` is normalised scroll progress (0-1) across the pinned section.
+ * Act two is treatment, one beat per service, each with its price.
+ *
+ * The split matters. These were previously interleaved, so an "enamel" beat
+ * carried a whitening price and showed a before-and-after photo instead of the
+ * enamel layer. The sequence promised to explain a tooth layer by layer and
+ * then showed two layers out of four. Separating the acts lets all four layers
+ * use the exploded animation, and lets each service have its own image rather
+ * than borrowing an anatomical one.
+ *
+ * Modelled on oryzo.ai: one continuous scene the camera flies through, each
+ * beat pairing a view with a copy block, a readout and a ground colour. The
+ * difference is that the subject here is a real thing rather than a fiction.
  */
 export interface Beat {
   id: string
-  at: number
   eyebrow: string
   title: string
   body: string
   /** Small technical card, the way Oryzo shows "FRICTION COEFFICIENT: 0.80". */
   readout?: { label: string; value: string }
-  /** Camera position for this beat. */
-  camera: { x: number; y: number; z: number }
   /**
-   * What the camera looks at. Defaults to the origin, but the layer beats
-   * aim at the focused layer's own exploded position so it fills the frame
-   * instead of sitting small in a wide shot of the whole assembly.
+   * How much scroll this beat holds, relative to the others.
+   *
+   * The four layer beats are one continuous movement with little to read, so
+   * they get less; the hero and the closing call to action have buttons to
+   * aim at, so they get more. Without this, growing from nine beats to
+   * fourteen would have made the sequence 55% longer for no extra content.
    */
-  target?: { x: number; y: number; z: number }
-  /** How far the tooth's parts separate. 0 = whole, 1 = fully exploded. */
-  explode: number
-  /** Which layer glows to draw the eye. */
-  focus?: 'enamel' | 'dentin' | 'pulp' | 'root' | null
+  hold?: number
   /**
-   * Ground colour for this beat, as a CSS value. The page darkens through the
-   * middle of the sequence and resolves back to paper. That shifting ground is
-   * most of why a scroll sequence reads as cinematic rather than as a long page.
+   * Ground colour for this beat, as a CSS value. The page darkens as the
+   * sequence goes inside the tooth and returns to light for the treatments.
+   * That shifting ground is most of why a scroll sequence reads as cinematic
+   * rather than as a long page.
    */
   bg: string
   /** Ink colour that stays legible on `bg`. */
   ink: string
   /** True when `bg` is dark, so chrome above the stage can invert. */
   dark?: boolean
-  /**
-   * Where the model sits in frame, in world units. The hero pushes it right so
-   * it shares the viewport with the headline rather than sitting under it; the
-   * layer beats bring it back toward centre as the camera closes in and it
-   * becomes the subject rather than the backdrop.
-   */
-  offset?: { x: number; y: number }
-  /** Which side the copy sits on, so the composition is not static. */
+  /** Which side the copy sits on. Uniformly left; see ImageStage. */
   side?: 'left' | 'right'
-  /** Marks the opening beat, which renders the hero rather than body copy. */
-  kind?: 'hero' | 'layer' | 'cta'
+  /** Marks the opening beat and the closing one, which render buttons. */
+  kind?: 'hero' | 'cta'
 }
 
-export const BEATS: Beat[] = [
+/** A beat with its resolved scroll position. */
+export type PlacedBeat = Beat & { at: number }
+
+const AUTHORED: Beat[] = [
+  // ---- Act one: anatomy -------------------------------------------------
   {
     id: 'hero',
     kind: 'hero',
-    at: 0.0,
+    hold: 1,
     eyebrow: 'Sawai Madhopur, Rajasthan',
     title: 'Modern Dentistry in a Calm and Relaxed Environment',
     body: 'Gentle, unhurried dental care, from routine cleanings to implants and orthodontics.',
-    camera: { x: 0, y: 0, z: 7.6 },
-    offset: { x: 0.85, y: 0 },
-    explode: 0,
-    focus: null,
     bg: 'var(--paper)',
     ink: 'var(--ink)',
-    side: 'left',
   },
   {
-    id: 'intro',
-    at: 0.1111,
+    id: 'jaw',
+    hold: 0.7,
     eyebrow: 'Start here',
     title: 'Your tooth, explained',
     body: 'Most people have never seen what a dentist actually does. Scroll, and we will show you, layer by layer.',
-    camera: { x: -0.9, y: 0.2, z: 5.6 },
-    offset: { x: 0.85, y: 0 },
-    explode: 0,
-    focus: null,
     bg: 'var(--surface)',
     ink: 'var(--ink)',
-    side: 'left',
+  },
+  {
+    id: 'section',
+    hold: 0.8,
+    eyebrow: 'What is inside',
+    title: 'One tooth, four layers',
+    body: 'A tooth is not a solid lump of bone. It is four distinct tissues, each doing a different job, and almost everything that goes wrong goes wrong in one of them.',
+    bg: 'var(--surface-sunk)',
+    ink: 'var(--ink)',
   },
   {
     id: 'enamel',
-    at: 0.2222,
+    hold: 0.6,
     eyebrow: 'The outer shell',
     title: 'Enamel',
-    body: 'The hardest tissue in your body, and the part that stains. Years of tea, coffee and tobacco sit in the enamel, not under it, so whitening lifts them without touching the tooth beneath.',
-    readout: { label: 'Whitening', value: '₹3,500 / session' },
-    camera: { x: 1.0, y: 1.4, z: 6.0 },
-    offset: { x: 0.85, y: 0 },
-    target: { x: 0, y: 0.9, z: 0 },
-    explode: 0.3,
-    focus: 'enamel',
-    bg: 'var(--surface-sunk)',
-    ink: 'var(--ink)',
-    side: 'left',
-  },
-  {
-    id: 'dentin',
-    at: 0.3333,
-    eyebrow: 'Beneath the surface',
-    title: 'Dentin',
-    body: 'Softer, and full of microscopic tubules. Once decay reaches here it moves fast, which is why a cleaning and a filling now costs a fraction of what waiting costs.',
-    readout: { label: 'Checkup & clean', value: '₹800 / visit' },
-    camera: { x: -1.3, y: 0.6, z: 6.2 },
-    offset: { x: 0.85, y: 0 },
-    target: { x: 0, y: 0.2, z: 0 },
-    explode: 0.55,
-    focus: 'dentin',
+    body: 'The hardest tissue in your body, and the only one that cannot rebuild itself once it is truly gone. It has no nerves, which is why damage here is painless until it reaches what is underneath.',
     bg: '#2A2620',
     ink: '#F2ECE2',
     dark: true,
-    side: 'left',
+  },
+  {
+    id: 'dentin',
+    hold: 0.6,
+    eyebrow: 'Beneath the surface',
+    title: 'Dentin',
+    body: 'Softer, and threaded with microscopic tubules running toward the nerve. This is why cold water hurts once it is exposed, and why decay moves so much faster once it gets this far.',
+    bg: '#241F1A',
+    ink: '#F2ECE2',
+    dark: true,
   },
   {
     id: 'pulp',
-    at: 0.4444,
+    hold: 0.6,
     eyebrow: 'The living core',
     title: 'Pulp',
-    body: 'Nerves and blood vessels. This is where toothache comes from, and where a root canal goes. Modern anaesthesia means you feel pressure, not pain.',
-    readout: { label: 'Pain-free treatment', value: 'Same day' },
-    camera: { x: 0.9, y: -0.2, z: 6.4 },
-    offset: { x: 0.85, y: 0 },
-    target: { x: 0, y: -0.15, z: 0 },
-    explode: 0.78,
-    focus: 'pulp',
+    body: 'Nerves and blood vessels, sealed inside a rigid chamber that cannot swell. That single fact is why toothache is the particular kind of pain it is, and why it does not settle on its own.',
     bg: '#1C1815',
     ink: '#F2ECE2',
     dark: true,
-    side: 'left',
   },
   {
     id: 'root',
-    at: 0.5556,
+    hold: 0.6,
     eyebrow: 'The anchor',
     title: 'Root',
-    body: 'Set into the jaw. When a tooth cannot be saved, an implant replaces the root itself, so the replacement bites, and lasts, like the original.',
-    readout: { label: 'Dental implant', value: '₹25,000 / tooth' },
-    camera: { x: -1.0, y: -1.2, z: 7.0 },
-    offset: { x: 0.85, y: 0 },
-    target: { x: 0, y: -1.6, z: 0 },
-    explode: 1,
-    focus: 'root',
+    body: 'Set into the jaw and held by a ligament thinner than paper. The bone around it exists only because the root is there, which is why losing a tooth changes the jaw beneath it.',
     bg: '#22201C',
     ink: '#F2ECE2',
     dark: true,
-    side: 'left',
   },
+
+  // ---- Act two: treatment ----------------------------------------------
   {
-    id: 'straighten',
-    at: 0.6667,
-    eyebrow: 'Position matters',
-    title: 'Alignment',
-    body: 'Crowded teeth trap what a brush cannot reach. Straightening is not only cosmetic. It is the cheapest long-term way to keep the layers above intact.',
-    readout: { label: 'Orthodontics', value: '₹45,000 / treatment' },
-    camera: { x: 0.8, y: 0.6, z: 6.4 },
-    offset: { x: 0.85, y: 0 },
-    target: { x: 0, y: 0.3, z: 0 },
-    explode: 0.35,
-    focus: 'enamel',
+    id: 'whitening',
+    hold: 0.9,
+    eyebrow: 'Treatment',
+    title: 'Whitening',
+    body: 'Years of tea, coffee and tobacco sit in the enamel, not under it. Bleaching lifts the stain out of that layer without touching the tooth beneath.',
+    readout: { label: 'Whitening', value: '₹3,500 / session' },
     bg: 'var(--surface)',
     ink: 'var(--ink)',
-    side: 'left',
+  },
+  {
+    id: 'cleaning',
+    hold: 0.9,
+    eyebrow: 'Treatment',
+    title: 'Checkups and cleaning',
+    body: 'Decay is painless until it reaches the nerve. A checkup finds it while the answer is still a small filling, and a scale removes what a brush has stopped being able to reach.',
+    readout: { label: 'Checkup & clean', value: '₹800 / visit' },
+    bg: 'var(--surface-sunk)',
+    ink: 'var(--ink)',
+  },
+  {
+    id: 'rootcanal',
+    hold: 0.9,
+    eyebrow: 'Treatment',
+    title: 'Root canal',
+    body: 'The infected pulp comes out, the canals are cleaned and sealed, and the tooth stays in your jaw. The pain people associate with this is the pain it removes.',
+    readout: { label: 'Pain-free treatment', value: 'Same day' },
+    bg: 'var(--surface)',
+    ink: 'var(--ink)',
+  },
+  {
+    id: 'implant',
+    hold: 0.9,
+    eyebrow: 'Treatment',
+    title: 'Dental implant',
+    body: 'A titanium root placed into the bone, with a crown on top. It stands on its own, so the healthy teeth either side are never cut down to carry it.',
+    readout: { label: 'Dental implant', value: '₹25,000 / tooth' },
+    bg: 'var(--surface-sunk)',
+    ink: 'var(--ink)',
+  },
+  {
+    id: 'braces',
+    hold: 0.9,
+    eyebrow: 'Treatment',
+    title: 'Braces and aligners',
+    body: 'Crowded teeth trap what a brush cannot reach. Straightening them is not only cosmetic, it is the cheapest long-term way to keep the layers above intact.',
+    readout: { label: 'Orthodontics', value: '₹45,000 / treatment' },
+    bg: 'var(--surface)',
+    ink: 'var(--ink)',
   },
   {
     id: 'emergency',
-    at: 0.7778,
+    hold: 0.9,
     eyebrow: 'When it cannot wait',
     title: 'Emergency care',
     body: 'A crack or a sudden ache does not keep office hours. Call any time and we will see you, or talk you through what to do until we can.',
     readout: { label: 'Emergency', value: 'Open 24/7' },
-    camera: { x: 0.9, y: 0.2, z: 5.4 },
-    offset: { x: 0.85, y: 0 },
-    explode: 0,
-    focus: null,
     bg: '#241C1A',
     ink: '#F2ECE2',
     dark: true,
-    side: 'left',
   },
   {
-    id: 'whole',
+    id: 'book',
     kind: 'cta',
-    at: 0.8889,
+    hold: 1.2,
     eyebrow: 'Put back together',
     title: 'Book a visit',
     body: 'Ten minutes in the chair is usually all it takes to know where you stand. No obligation, no lecture.',
-    camera: { x: 0, y: 0, z: 6.6 },
-    offset: { x: 0.85, y: 0 },
-    explode: 0,
-    focus: null,
     bg: 'var(--paper)',
     ink: 'var(--ink)',
-    side: 'left',
   },
 ]
 
+/** Total scroll weight, in beat-widths. Drives the section's height. */
+export const TOTAL_HOLD = AUTHORED.reduce((n, b) => n + (b.hold ?? 1), 0)
+
+/**
+ * The beats, each with the scroll position it starts at.
+ *
+ * `at` is derived from the running total of `hold` rather than typed by hand.
+ * Hand-typed values could not survive a restructure this size, and they had
+ * already caused a real bug: a beat authored at `at: 1.0` owns a zero-width
+ * range and flashes past in a single frame, which is what once happened to the
+ * closing call to action. Deriving them makes that unrepresentable, because
+ * the last beat necessarily starts before 1 and runs to the end.
+ */
+export const BEATS: PlacedBeat[] = (() => {
+  let run = 0
+  return AUTHORED.map((b) => {
+    const at = run / TOTAL_HOLD
+    run += b.hold ?? 1
+    return { ...b, at, side: b.side ?? 'left' }
+  })
+})()
+
 /** The beat that owns a given scroll progress. */
-export function resolveBeat(p: number): Beat {
+export function resolveBeat(p: number): PlacedBeat {
   let current = BEATS[0]
   for (const b of BEATS) if (p >= b.at - 0.001) current = b
   return current
