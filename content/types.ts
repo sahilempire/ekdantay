@@ -61,6 +61,15 @@ export interface Service {
   /** lucide-react icon name */
   icon: string
   blurb: string
+  /**
+   * What this costs, as one display string.
+   *
+   * Lives here rather than in the scroll story's beats, which is where it
+   * used to live. Two places rendering the same price is the drift that put a
+   * San Francisco address in four footers on the legacy site, and the services
+   * grid needed the same numbers the beats already had.
+   */
+  price: string
 }
 
 export interface StaffMember {

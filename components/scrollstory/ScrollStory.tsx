@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { motion, useScroll } from 'motion/react'
-import { ChevronDown, Phone } from 'lucide-react'
+import { Phone } from 'lucide-react'
 import { BEATS, TOTAL_HOLD, resolveBeatIndex } from './beats'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { Container } from '@/components/ui/Container'
 import { ButtonLink } from '@/components/ui/Button'
 import { SplitText } from '@/components/motion/SplitText'
-import { Magnetic } from '@/components/motion/Magnetic'
 import { clinic } from '@/content/clinic'
 import { hoursSummary } from '@/lib/hours'
 
@@ -214,9 +213,7 @@ export function ScrollStory() {
                   alignRight ? 'md:justify-end' : ''
                 }`}
               >
-                <Magnetic>
-                  <ButtonLink href="/contact" size="lg">Book Appointment</ButtonLink>
-                </Magnetic>
+                <ButtonLink href="/contact" size="lg">Book Appointment</ButtonLink>
                 <ButtonLink href={clinic.phone.tel} variant="outline" size="lg">
                   <Phone size={16} aria-hidden />
                   {clinic.phone.display}
@@ -242,30 +239,28 @@ export function ScrollStory() {
           </motion.div>
         </Container>
 
-        {/* Beat rail: where you are in the sequence. */}
-        <div className="pointer-events-none absolute right-6 top-1/2 hidden -translate-y-1/2 flex-col gap-3 sm:flex">
-          {BEATS.map((b, i) => (
-            <motion.span
-              key={b.id}
-              className="w-px"
-              animate={{
-                height: i === active ? 28 : 14,
-                backgroundColor: i === active ? 'var(--accent)' : beat.ink,
-                opacity: i === active ? 1 : 0.3,
-              }}
-              transition={{ duration: 0.4 }}
-            />
-          ))}
-        </div>
+        {/*
+          Scroll hint.
 
+          Was a bouncing chevron over the words "Scroll to continue", which is
+          the single most templated pairing on the web and read as generated
+          rather than designed. A hairline with a highlight travelling down it
+          says the same thing without the cliche, and without any copy to
+          translate or get stale.
+        */}
         <motion.div
-          animate={{ opacity: active === 0 ? 1 : 0 }}
+          animate={{ opacity: active === 0 ? 0.5 : 0 }}
           transition={{ duration: 0.4 }}
-          style={{ color: beat.ink }}
-          className="pointer-events-none absolute bottom-8 left-1/2 hidden -translate-x-1/2 items-center gap-2 text-xs uppercase tracking-[0.14em] opacity-60 sm:flex"
+          className="pointer-events-none absolute bottom-10 left-1/2 hidden h-14 w-px -translate-x-1/2 overflow-hidden sm:block"
+          style={{ backgroundColor: 'color-mix(in srgb, currentColor 20%, transparent)', color: beat.ink }}
+          aria-hidden
         >
-          <ChevronDown size={15} className="animate-bounce" aria-hidden />
-          Scroll to continue
+          <motion.span
+            className="absolute inset-x-0 h-5 rounded-full"
+            style={{ backgroundColor: beat.ink }}
+            animate={{ top: ['-20px', '56px'] }}
+            transition={{ duration: 2.2, ease: 'easeInOut', repeat: Infinity, repeatDelay: 0.5 }}
+          />
         </motion.div>
       </motion.div>
     </section>

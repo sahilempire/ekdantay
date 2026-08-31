@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { clinic } from '@/content/clinic'
 import { team } from '@/content/team'
-import { services } from '@/content/services'
+import { services, servicePrice } from '@/content/services'
 import { pricingINR, pricingUSD } from '@/content/pricing'
 import { statsHome, statsInner } from '@/content/stats'
 import { posts, getPost, categories, readingMinutes, wordCount, relatedPosts } from '@/content/posts'
@@ -95,6 +95,26 @@ describe('services', () => {
 
   it('gives every service a unique slug', () => {
     expect(new Set(services.map((s) => s.slug)).size).toBe(services.length)
+  })
+
+  it('prices every service in one place', () => {
+    // The scroll story's beats used to carry these numbers too. Two copies of
+    // a price is the drift that put a San Francisco address in four footers
+    // on the legacy site, so beats.ts now reads them from here.
+    for (const s of services) {
+      expect(s.price.length).toBeGreaterThan(3)
+      expect(servicePrice(s.slug)).toBe(s.price)
+    }
+    expect(() => servicePrice('no-such-service')).toThrow()
+  })
+
+  it('quotes rupees, never dollars', () => {
+    // Not every price is an amount: "Same day" and "Open 24/7" are answers to
+    // the same question. Only the ones carrying a currency are checked.
+    const amounts = services.map((s) => s.price).filter((p) => /[₹$]/.test(p))
+    expect(amounts.length).toBe(4)
+    expect(amounts.every((p) => p.startsWith('₹'))).toBe(true)
+    expect(services.some((s) => s.price.includes('$'))).toBe(false)
   })
 })
 

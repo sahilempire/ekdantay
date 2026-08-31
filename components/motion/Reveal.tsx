@@ -9,6 +9,8 @@ interface RevealProps {
   delay?: number
   className?: string
   as?: 'div' | 'li' | 'section' | 'article'
+  /** For grounds that are not palette tokens, such as the inverted tiles. */
+  style?: React.CSSProperties
 }
 
 /**
@@ -19,17 +21,18 @@ interface RevealProps {
  * all, rather than an animation with duration zero - so there is nothing to
  * mis-fire and no transform left on the element.
  */
-export function Reveal({ children, delay = 0, className, as = 'div' }: RevealProps) {
+export function Reveal({ children, delay = 0, className, as = 'div', style }: RevealProps) {
   const reduced = usePrefersReducedMotion()
   const Tag = as
 
-  if (reduced) return <Tag className={className}>{children}</Tag>
+  if (reduced) return <Tag className={className} style={style}>{children}</Tag>
 
   const MotionTag = motion[as]
 
   return (
     <MotionTag
       className={className}
+      style={style}
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '0px 0px -80px 0px' }}

@@ -64,14 +64,15 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <a
-              href={clinic.phone.tel}
-              className="hidden items-center gap-2 text-sm text-ink-soft transition-colors hover:text-accent sm:flex"
-            >
-              <Phone size={15} aria-hidden />
-              <span className="tabular">{clinic.phone.display}</span>
-            </a>
+            {/*
+              No phone number in the header bar.
 
+              It sat beside the booking button on desktop and was hidden on
+              phones, which is backwards: tapping a number is a one-touch call
+              on the device that can actually make one, and on desktop it is
+              just a string competing with the CTA next to it. It stays in the
+              mobile drawer, in the footer, and on the hero beat.
+            */}
             {/*
               Wrapped rather than given `hidden sm:inline-flex` directly.
               Button's base class sets `inline-flex`, and Tailwind resolves

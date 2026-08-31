@@ -20,6 +20,8 @@
  * beat pairing a view with a copy block, a readout and a ground colour. The
  * difference is that the subject here is a real thing rather than a fiction.
  */
+import { servicePrice } from '@/content/services'
+
 export interface Beat {
   id: string
   eyebrow: string
@@ -134,7 +136,7 @@ const AUTHORED: Beat[] = [
     eyebrow: 'Treatment',
     title: 'Whitening',
     body: 'Years of tea, coffee and tobacco sit in the enamel, not under it. Bleaching lifts the stain out of that layer without touching the tooth beneath.',
-    readout: { label: 'Whitening', value: '₹3,500 / session' },
+    readout: { label: 'Whitening', value: servicePrice('teeth-whitening') },
     bg: 'var(--surface)',
     ink: 'var(--ink)',
   },
@@ -144,7 +146,7 @@ const AUTHORED: Beat[] = [
     eyebrow: 'Treatment',
     title: 'Checkups and cleaning',
     body: 'Decay is painless until it reaches the nerve. A checkup finds it while the answer is still a small filling, and a scale removes what a brush has stopped being able to reach.',
-    readout: { label: 'Checkup & clean', value: '₹800 / visit' },
+    readout: { label: 'Checkup & clean', value: servicePrice('teeth-cleaning') },
     bg: 'var(--surface-sunk)',
     ink: 'var(--ink)',
   },
@@ -154,7 +156,7 @@ const AUTHORED: Beat[] = [
     eyebrow: 'Treatment',
     title: 'Root canal',
     body: 'The infected pulp comes out, the canals are cleaned and sealed, and the tooth stays in your jaw. The pain people associate with this is the pain it removes.',
-    readout: { label: 'Pain-free treatment', value: 'Same day' },
+    readout: { label: 'Pain-free treatment', value: servicePrice('pain-free-treatment') },
     bg: 'var(--surface)',
     ink: 'var(--ink)',
   },
@@ -164,7 +166,7 @@ const AUTHORED: Beat[] = [
     eyebrow: 'Treatment',
     title: 'Dental implant',
     body: 'A titanium root placed into the bone, with a crown on top. It stands on its own, so the healthy teeth either side are never cut down to carry it.',
-    readout: { label: 'Dental implant', value: '₹25,000 / tooth' },
+    readout: { label: 'Dental implant', value: servicePrice('dental-implants') },
     bg: 'var(--surface-sunk)',
     ink: 'var(--ink)',
   },
@@ -174,7 +176,7 @@ const AUTHORED: Beat[] = [
     eyebrow: 'Treatment',
     title: 'Braces and aligners',
     body: 'Crowded teeth trap what a brush cannot reach. Straightening them is not only cosmetic, it is the cheapest long-term way to keep the layers above intact.',
-    readout: { label: 'Orthodontics', value: '₹45,000 / treatment' },
+    readout: { label: 'Orthodontics', value: servicePrice('orthodontics') },
     bg: 'var(--surface)',
     ink: 'var(--ink)',
   },
@@ -184,7 +186,7 @@ const AUTHORED: Beat[] = [
     eyebrow: 'When it cannot wait',
     title: 'Emergency care',
     body: 'A crack or a sudden ache does not keep office hours. Call any time and we will see you, or talk you through what to do until we can.',
-    readout: { label: 'Emergency', value: 'Open 24/7' },
+    readout: { label: 'Emergency', value: servicePrice('emergency-care') },
     bg: '#241C1A',
     ink: '#F2ECE2',
     dark: true,
