@@ -174,7 +174,19 @@
 
 /* ==========================================================================
    Base
+
+   These MUST stay inside @layer base.
+
+   Written unlayered, they beat every Tailwind utility, because unlayered CSS
+   outranks all layered CSS in the cascade no matter the specificity. That is
+   not a specificity fight a class can win: `p { margin: 0 }` sitting outside a
+   layer silently killed every mt-* and mb-* on a <p>, <h1>, <h2>, <h3> and
+   <h4> across the whole site. Thirty-five of them, doing nothing, in fifteen
+   files. Most went unnoticed because the elements sat in flex containers
+   whose `gap` was doing the spacing instead.
    ========================================================================== */
+
+@layer base {
 
 * {
   box-sizing: border-box;
@@ -228,6 +240,9 @@ button, input, select, textarea {
   outline-offset: 3px;
   border-radius: 4px;
 }
+
+}
+/* end @layer base */
 
 /* Skip link - the old site had none */
 .skip-link {

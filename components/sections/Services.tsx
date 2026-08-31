@@ -83,57 +83,56 @@ export function Services({ limit }: { limit?: number }) {
 
 function ServiceTile({ service: s, delay }: { service: Service; delay: number }) {
   const article = explainer(s.slug)
-  // Wide tiles can carry the price and the link on one line. A single-column
-  // tile cannot: they collide and wrap mid-phrase, which is what "Same day"
-  // butted against "How this works" looked like.
   const span = SPAN[s.slug] ?? ''
   const wide = span.includes('col-span-3')
-  const roomy = wide || span.includes('col-span-2')
 
   return (
-    <Reveal
-      delay={delay}
-      className={`group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-surface p-7 transition-colors duration-300 hover:border-accent ${span}`}
-    >
-      {/* A warm wash rising on hover. Sits under the content and is purely
-          decorative, so it never intercepts a click. */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-accent-wash to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-      />
+    <Reveal delay={delay} className={span}>
+      {/*
+        The whole tile is the link.
 
-      <div className="relative flex flex-1 flex-col">
-        <span className="inline-flex self-start rounded-xl bg-accent-wash p-3 text-accent transition-transform duration-300 group-hover:-translate-y-0.5">
-          <Icon name={s.icon} size={wide ? 26 : 22} />
-        </span>
+        It used to carry "How this works" as its own line, which repeated five
+        times down the section and, in a wide tile, sat marooned five hundred
+        pixels from the price at the opposite corner. Making the tile clickable
+        removes the text entirely and leaves an arrow as the affordance, which
+        needs no translation and cannot be orphaned.
+      */}
+      <Link
+        href={article ? `/blog/${article.slug}` : '/contact'}
+        className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface p-7 transition-colors duration-300 hover:border-accent"
+      >
+        {/* A warm wash rising on hover, under the content and inert. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-accent-wash to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        />
 
-        <h3 className={`mt-5 ${wide ? 'text-2xl' : 'text-lg'}`}>{s.title}</h3>
-        <p className={`mt-2.5 text-ink-soft ${wide ? 'max-w-md' : 'text-sm'}`}>{s.blurb}</p>
+        <div className="relative flex flex-1 flex-col">
+          {/* No filled chip behind the icon. A pale rounded square is the
+              stock-template look, and it read as detached from the title
+              sitting under it. */}
+          <span className="text-accent transition-transform duration-300 group-hover:-translate-y-0.5">
+            <Icon name={s.icon} size={wide ? 30 : 26} />
+          </span>
 
-        <div
-          className={`mt-auto pt-6 ${
-            roomy
-              ? 'flex flex-wrap items-center justify-between gap-3'
-              : 'flex flex-col items-start gap-2'
-          }`}
-        >
-          <span className="tabular font-display text-accent">{s.price}</span>
-          {article && (
-            <Link
-              href={`/blog/${article.slug}`}
-              className="inline-flex items-center gap-1.5 text-sm text-accent transition-colors hover:text-accent-hover"
-            >
-              How this works
-              <ArrowRight
-                size={14}
-                aria-hidden
-                className="transition-transform group-hover:translate-x-0.5"
-              />
-              <span className="sr-only">: {article.title}</span>
-            </Link>
-          )}
+          <h3 className={`mt-7 transition-colors group-hover:text-accent ${wide ? 'text-2xl' : 'text-lg'}`}>
+            {s.title}
+          </h3>
+          <p className={`mt-2.5 mb-7 text-ink-soft ${wide ? 'max-w-md' : 'text-sm'}`}>{s.blurb}</p>
+
+          {/* The rule is what stops the price and the arrow reading as two
+              unrelated things drifting to opposite corners. */}
+          <div className="mt-auto flex items-center justify-between gap-3 border-t border-line pt-5 transition-colors duration-300 group-hover:border-accent/30">
+            <span className="tabular font-display text-accent">{s.price}</span>
+            <ArrowRight
+              size={17}
+              aria-hidden
+              className="shrink-0 text-muted transition-all duration-300 group-hover:translate-x-1 group-hover:text-accent"
+            />
+            {article && <span className="sr-only">Read: {article.title}</span>}
+          </div>
         </div>
-      </div>
+      </Link>
     </Reveal>
   )
 }
@@ -151,8 +150,9 @@ function EmergencyTile({ service: s, delay }: { service: Service; delay: number 
       style={{ backgroundColor: '#241C1A', color: '#F2ECE2' }}
     >
       <div className="flex items-start gap-5">
-        <span className="inline-flex shrink-0 rounded-xl bg-white/10 p-3 text-glow">
-          <Icon name={s.icon} size={24} />
+        {/* Matches the other tiles: the icon carries itself, no chip. */}
+        <span className="shrink-0 text-glow">
+          <Icon name={s.icon} size={30} />
         </span>
         <div>
           <h3 className="text-2xl">{s.title}</h3>
@@ -160,7 +160,7 @@ function EmergencyTile({ service: s, delay }: { service: Service; delay: number 
           {article && (
             <Link
               href={`/blog/${article.slug}`}
-              className="mt-4 inline-flex items-center gap-1.5 text-sm text-glow transition-opacity hover:opacity-80"
+              className="mt-4 inline-flex items-center gap-1.5 text-sm text-glow underline decoration-glow/30 underline-offset-4 transition-colors hover:decoration-glow"
             >
               What to do first
               <ArrowRight size={14} aria-hidden />

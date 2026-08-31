@@ -141,6 +141,58 @@ test.describe('booking', () => {
   })
 })
 
+test.describe('css cascade', () => {
+  /*
+    Guards a bug that was invisible and site-wide.
+
+    globals.css resets `h1,h2,h3,h4 { margin: 0 }` and `p { margin: 0 }`. Those
+    were written outside any @layer, and unlayered CSS beats every layered rule
+    in the cascade regardless of specificity, so Tailwind's utilities lost. The
+    result was thirty-five dead mt-* and mb-* declarations across fifteen
+    files, doing nothing, mostly unnoticed because the elements sat in flex
+    containers whose `gap` was quietly covering for them.
+
+    A unit test cannot see this: the class is in the markup and the rule is in
+    the stylesheet. Only a browser resolving the cascade can tell you the
+    computed value is zero.
+  */
+  test('margin utilities survive the base reset on p and headings', async ({ page }) => {
+    await page.goto('/blog/how-a-cavity-forms')
+
+    const measured = await page.evaluate(() => {
+      const pick = (sel: string) => document.querySelector(sel)
+      const heading = pick('h2[class*="mt-"]') as HTMLElement | null
+      const para = pick('p[class*="mt-"]') as HTMLElement | null
+      return {
+        heading: heading ? getComputedStyle(heading).marginTop : null,
+        paragraph: para ? getComputedStyle(para).marginTop : null,
+      }
+    })
+
+    expect(measured.heading, 'no h2 carrying an mt-* utility to test').toBeTruthy()
+    expect(measured.paragraph, 'no p carrying an mt-* utility to test').toBeTruthy()
+    expect(measured.heading).not.toBe('0px')
+    expect(measured.paragraph).not.toBe('0px')
+  })
+
+  test('a service card spaces its own parts', async ({ page }) => {
+    await page.goto('/services')
+    const gaps = await page.evaluate(() => {
+      const h3 = [...document.querySelectorAll('h3')].find((h) => h.textContent === 'Teeth Cleaning')
+      const card = h3!.closest('a')!
+      const blurb = card.querySelector('p')!
+      const rule = card.querySelector('div.border-t')!
+      return {
+        blurbToRule: Math.round(rule.getBoundingClientRect().top - blurb.getBoundingClientRect().bottom),
+        titleTop: parseFloat(getComputedStyle(h3!).marginTop),
+      }
+    })
+    // Both were zero: the title sat on the icon and the blurb on the rule.
+    expect(gaps.blurbToRule).toBeGreaterThan(12)
+    expect(gaps.titleTop).toBeGreaterThan(12)
+  })
+})
+
 test.describe('search engine markup', () => {
   /*
     This suite exists because of a defect that shipped and went unnoticed.
