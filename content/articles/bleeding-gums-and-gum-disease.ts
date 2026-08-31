@@ -11,7 +11,7 @@ export const bleedingGumsAndGumDisease: Post = {
   author: 'Dr. Divya Bharti',
   category: 'Prevention',
   image: '/images/image_4.webp',
-  imageAlt: 'A dental hygiene appointment in progress',
+  imageAlt: 'A patient having their teeth and gums examined in the chair',
   excerpt:
     'Healthy gums do not bleed when brushed, any more than healthy skin bleeds when washed. The reason it gets ignored is that the disease it signals is almost entirely painless until it is advanced.',
   service: 'teeth-cleaning',

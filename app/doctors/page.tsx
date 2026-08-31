@@ -3,7 +3,7 @@ import { PageHero } from '@/components/sections/PageHero'
 import { TeamGrid } from '@/components/sections/TeamGrid'
 import { Achievements } from '@/components/sections/Achievements'
 import { PricingTable } from '@/components/sections/PricingTable'
-import { statsInner } from '@/content/stats'
+import { stats } from '@/content/stats'
 import { pricingUSD } from '@/content/pricing'
 import { team } from '@/content/team'
 import { JsonLd, clinicNode, websiteNode, breadcrumbNode } from '@/components/JsonLd'
@@ -42,9 +42,11 @@ export default function DoctorsPage() {
             })),
         ]}
       />
-      <PageHero title="Meet Our Experience Dentist" crumb="Doctors" />
-      <TeamGrid title="Meet Our Experience Dentist" />
-      <Achievements stats={statsInner} />
+      <PageHero title="Meet Our Experienced Dentists" crumb="Doctors" />
+      {/* No section heading: the page h1 directly above already says this, and
+          it was rendering the same words twice, with the legacy typo intact. */}
+      <TeamGrid title={null} />
+      <Achievements stats={stats} />
       {/* Pricing section commented out at the client's request. */}
       {/* <PricingTable tiers={pricingUSD} /> */}
     </main>

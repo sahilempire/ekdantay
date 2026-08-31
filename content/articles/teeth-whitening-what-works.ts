@@ -10,8 +10,8 @@ export const teethWhiteningWhatWorks: Post = {
   updated: '2026-08-30',
   author: 'Dr. Divya Bharti',
   category: 'Cosmetic',
-  image: '/images/image_6.webp',
-  imageAlt: 'A bright natural smile after professional whitening treatment',
+  image: '/images/image_1.webp',
+  imageAlt: 'A woman smiling with bright, even teeth',
   excerpt:
     'Bleaching is chemistry, not scrubbing, and it only reaches one of the two kinds of stain. It also does nothing to crowns and fillings, which is the surprise that ruins more results than anything else.',
   service: 'teeth-whitening',

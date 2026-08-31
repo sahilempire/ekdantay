@@ -208,15 +208,10 @@ body {
 }
 
 h1, h2, h3, h4 {
-  font-family: var(--font-fraunces), Georgia, serif;
-  text-wrap: balance;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
   margin: 0;
 }
 
 p {
-  text-wrap: pretty;
   margin: 0;
 }
 
@@ -243,6 +238,34 @@ button, input, select, textarea {
 
 }
 /* end @layer base */
+
+/* ==========================================================================
+   Display typography
+
+   Unlayered on purpose, and the only thing here that is.
+
+   Tailwind's size utilities carry their own line-height: `text-lg` is 18px
+   text on 28px leading, which is right for a paragraph and much too loose for
+   a heading. Layering this rule would let every text-* utility beat it, and
+   multi-line headings across the site went slack the moment that happened.
+   Unlayered, the 1.1 wins over the size utility while font-size still comes
+   from it, which is exactly the split we want.
+
+   The margin reset stays in @layer base above, where utilities CAN beat it.
+   Mixing the two in one unlayered rule is what silently killed thirty-five
+   mt-* and mb-* declarations.
+   ========================================================================== */
+
+h1, h2, h3, h4 {
+  font-family: var(--font-fraunces), Georgia, serif;
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+p {
+  text-wrap: pretty;
+}
 
 /* Skip link - the old site had none */
 .skip-link {

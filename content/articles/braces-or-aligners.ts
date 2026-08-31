@@ -10,8 +10,8 @@ export const bracesOrAligners: Post = {
   updated: '2026-08-30',
   author: 'Dr. Divya Bharti',
   category: 'Orthodontics',
-  image: '/images/gallery-1.webp',
-  imageAlt: 'Orthodontic treatment being assessed at the clinic',
+  image: '/images/image_2.webp',
+  imageAlt: 'A woman laughing, her teeth visible',
   excerpt:
     'The interesting question is not which appliance looks better. It is how a tooth moves through solid bone at all, and what that biology says about how long it takes and what happens afterwards.',
   service: 'orthodontics',

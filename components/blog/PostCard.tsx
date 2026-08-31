@@ -43,7 +43,7 @@ export function PostCard({
           />
         </div>
 
-        <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+        <p className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
           {showCategory && (
             <>
               <span className="font-semibold uppercase tracking-[0.12em] text-accent">
@@ -63,10 +63,10 @@ export function PostCard({
           <span>{readingMinutes(post)} min read</span>
         </p>
 
-        <Heading className="mt-2 text-lg transition-colors group-hover:text-accent">
+        <Heading className="mt-3 text-lg transition-colors group-hover:text-accent">
           {post.title}
         </Heading>
-        <p className="mt-2 line-clamp-3 text-sm text-ink-soft">{post.excerpt}</p>
+        <p className="mt-3 line-clamp-3 text-sm text-ink-soft">{post.excerpt}</p>
       </Link>
     </Reveal>
   )

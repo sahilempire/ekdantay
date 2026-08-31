@@ -10,8 +10,8 @@ export const childrensTeethFirstVisit: Post = {
   updated: '2026-08-30',
   author: 'Dr. Divya Bharti',
   category: 'Children',
-  image: '/images/about.webp',
-  imageAlt: 'A welcoming, calm clinic environment for young patients',
+  image: '/images/image_5.webp',
+  imageAlt: 'A young child laughing, relaxed and unafraid',
   excerpt:
     'The most useful thing a first dental visit does has nothing to do with teeth. It establishes that the place is boring and nothing bad happens, which is what makes every later visit possible.',
   related: ['how-a-cavity-forms', 'brushing-what-the-evidence-supports'],

@@ -3,7 +3,7 @@ import { PageHero } from '@/components/sections/PageHero'
 import { Services } from '@/components/sections/Services'
 import { Achievements } from '@/components/sections/Achievements'
 import { PricingTable } from '@/components/sections/PricingTable'
-import { statsInner } from '@/content/stats'
+import { stats } from '@/content/stats'
 import { pricingUSD } from '@/content/pricing'
 import { services } from '@/content/services'
 import { JsonLd, clinicNode, websiteNode, breadcrumbNode } from '@/components/JsonLd'
@@ -48,7 +48,7 @@ export default function ServicesPage() {
       />
       <PageHero title="Our Service Keeps you Smile" crumb="Services" />
       <Services />
-      <Achievements stats={statsInner} />
+      <Achievements stats={stats} />
       {/* Pricing section commented out at the client's request. */}
       {/* <PricingTable tiers={pricingUSD} /> */}
     </main>

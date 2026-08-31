@@ -10,8 +10,8 @@ export const replacingAMissingTooth: Post = {
   updated: '2026-08-30',
   author: 'Dr. Divya Bharti',
   category: 'Treatment',
-  image: '/images/image_5.webp',
-  imageAlt: 'A dental consultation reviewing treatment options',
+  image: '/images/image_6.webp',
+  imageAlt: 'A dental model showing a full set of upper and lower teeth',
   excerpt:
     'The first decision is not which replacement. It is whether to replace at all, and the argument for doing so is about the bone underneath rather than the gap you can see.',
   service: 'dental-implants',

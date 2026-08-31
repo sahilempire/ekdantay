@@ -10,8 +10,8 @@ export const whatHappensAtACheckup: Post = {
   updated: '2026-08-30',
   author: 'Dr. Divya Bharti',
   category: 'Prevention',
-  image: '/images/about-2.webp',
-  imageAlt: 'A dental examination taking place in a calm treatment room',
+  image: '/images/about.webp',
+  imageAlt: 'A dental treatment room with the chair and light ready for a patient',
   excerpt:
     'The part of a check-up that could save your life takes about fifteen seconds and involves no teeth at all. Most patients never notice it happening.',
   related: ['bleeding-gums-and-gum-disease', 'how-a-cavity-forms'],

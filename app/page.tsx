@@ -10,7 +10,7 @@ import { RecentPosts } from '@/components/sections/RecentPosts'
 import { MapEmbed } from '@/components/sections/MapEmbed'
 import { clinic } from '@/content/clinic'
 import { services } from '@/content/services'
-import { statsHome } from '@/content/stats'
+import { stats } from '@/content/stats'
 import { pricingINR } from '@/content/pricing'
 import { JsonLd, clinicNode, websiteNode } from '@/components/JsonLd'
 import { pageUrl } from '@/lib/seo'
@@ -30,7 +30,7 @@ export default function Home() {
       </section>
 
       <Services limit={6} />
-      <Achievements stats={statsHome} />
+      <Achievements stats={stats} />
       <TeamGrid limit={4} />
       {/* Pricing section commented out at the client's request. The rupee
           tiers still live in content/pricing.ts, so restoring it is

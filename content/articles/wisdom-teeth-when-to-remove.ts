@@ -10,8 +10,8 @@ export const wisdomTeethWhenToRemove: Post = {
   updated: '2026-08-30',
   author: 'Dr. Divya Bharti',
   category: 'Treatment',
-  image: '/images/gallery-3.webp',
-  imageAlt: 'A dental radiograph being reviewed before treatment planning',
+  image: '/images/bg_2.webp',
+  imageAlt: 'A dentist operating while wearing surgical loupes',
   excerpt:
     'The most damaging thing a wisdom tooth usually does is destroy the healthy tooth in front of it, quietly, in a spot no toothbrush reaches. That, not the wisdom tooth itself, is often the real argument for removal.',
   related: ['braces-or-aligners', 'knocked-out-tooth-first-aid'],

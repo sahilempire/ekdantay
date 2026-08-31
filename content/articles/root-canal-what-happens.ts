@@ -10,8 +10,8 @@ export const rootCanalWhatHappens: Post = {
   updated: '2026-08-30',
   author: 'Dr. Divya Bharti',
   category: 'Treatment',
-  image: '/images/image_2.webp',
-  imageAlt: 'Dental instruments laid out ready for a treatment appointment',
+  image: '/images/gallery-3.webp',
+  imageAlt: 'A dentist working in mask and gloves during a procedure',
   excerpt:
     'The pain people associate with a root canal is the pain of the infection that made it necessary. The treatment is what stops it. Here is what happens in the chair, and an honest look at the numbers.',
   service: 'pain-free-treatment',

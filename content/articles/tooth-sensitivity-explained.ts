@@ -11,7 +11,7 @@ export const toothSensitivityExplained: Post = {
   author: 'Dr. Divya Bharti',
   category: 'Prevention',
   image: '/images/image_3.webp',
-  imageAlt: 'A glass of cold water, a common trigger for dentine sensitivity',
+  imageAlt: 'A woman eating an ice cream, a classic trigger for sensitive teeth',
   excerpt:
     'A sharp jolt from cold water and a deep ache that wakes you at night are two different problems with two different answers. Telling them apart is the most useful thing in this article.',
   related: ['how-a-cavity-forms', 'brushing-what-the-evidence-supports'],

@@ -10,8 +10,8 @@ export const knockedOutToothFirstAid: Post = {
   updated: '2026-08-30',
   author: 'Dr. Divya Bharti',
   category: 'Emergency',
-  image: '/images/gallery-2.webp',
-  imageAlt: 'Emergency dental care available at the clinic',
+  image: '/images/gallery-1.webp',
+  imageAlt: 'A dentist in the clinic treatment room, ready to see a patient',
   excerpt:
     'The outcome is decided by people who are not dentists, in the first half hour, usually at a playground or a roadside. This is the page to have read before you need it.',
   service: 'emergency-care',

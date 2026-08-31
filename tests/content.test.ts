@@ -3,7 +3,7 @@ import { clinic } from '@/content/clinic'
 import { team } from '@/content/team'
 import { services, servicePrice } from '@/content/services'
 import { pricingINR, pricingUSD } from '@/content/pricing'
-import { statsHome, statsInner } from '@/content/stats'
+import { stats } from '@/content/stats'
 import { posts, getPost, categories, readingMinutes, wordCount, relatedPosts } from '@/content/posts'
 import { testimonials } from '@/content/testimonials'
 
@@ -81,9 +81,17 @@ describe('pricing', () => {
 })
 
 describe('stats', () => {
-  it('keeps both contradictory sets so each page renders what it did before', () => {
-    expect(statsHome.find((s) => s.label === 'Qualified Dentists')?.value).toBe(2)
-    expect(statsInner.find((s) => s.label === 'Qualified Dentist')?.value).toBe(4500)
+  it('publishes one set of numbers, not two contradictory ones', () => {
+    // About, services and doctors used to claim 4,500 qualified dentists and
+    // 14 years while the homepage said 2 and 4. Asserting the real figures
+    // here is what stops the template set coming back.
+    expect(stats.find((s) => s.label === 'Qualified Dentists')?.value).toBe(2)
+    expect(stats.find((s) => s.label === 'Years of Experience')?.value).toBe(4)
+  })
+
+  it('claims nothing a two-dentist clinic could not claim', () => {
+    expect(stats.every((s) => s.value < 5000)).toBe(true)
+    expect(stats.map((s) => s.label)).not.toContain('Happy Smiling Customer')
   })
 })
 
@@ -200,6 +208,16 @@ describe('posts', () => {
         expect(f.a.length).toBeGreaterThan(40)
       }
     }
+  })
+
+  it('gives every article a distinct photo', () => {
+    // Filenames were already unique; the pictures were not. gallery-2 is a
+    // byte-for-byte duplicate of image_6 and gallery-4 of image_3, so two
+    // pairs of cards showed the same photo in the same grid.
+    const images = posts.map((p) => p.image)
+    expect(new Set(images).size).toBe(posts.length)
+    expect(images).not.toContain('/images/gallery-2.webp')
+    expect(images).not.toContain('/images/gallery-4.webp')
   })
 
   it('never links to a related slug that does not exist', () => {

@@ -10,8 +10,8 @@ export const brushingWhatTheEvidenceSupports: Post = {
   updated: '2026-08-30',
   author: 'Dr. Divya Bharti',
   category: 'Prevention',
-  image: '/images/gallery-4.webp',
-  imageAlt: 'Daily oral hygiene supplies including toothbrush and toothpaste',
+  image: '/images/bg_1.webp',
+  imageAlt: 'Clinical staff at a dental practice',
   excerpt:
     'There is one free change that measurably reduces decay and almost nobody makes it: stop rinsing your mouth out after brushing. Here is why, and what else survives contact with the evidence.',
   related: ['how-a-cavity-forms', 'bleeding-gums-and-gum-disease'],

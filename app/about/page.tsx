@@ -5,7 +5,7 @@ import { Testimonials } from '@/components/sections/Testimonials'
 import { Container } from '@/components/ui/Container'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { Reveal } from '@/components/motion/Reveal'
-import { statsInner } from '@/content/stats'
+import { stats } from '@/content/stats'
 import { clinic } from '@/content/clinic'
 import { JsonLd, clinicNode, websiteNode, breadcrumbNode } from '@/components/JsonLd'
 import { pageUrl } from '@/lib/seo'
@@ -51,7 +51,7 @@ export default function AboutPage() {
           ))}
         </div>
       </Container>
-      <Achievements stats={statsInner} />
+      <Achievements stats={stats} />
       <Testimonials />
     </main>
   )

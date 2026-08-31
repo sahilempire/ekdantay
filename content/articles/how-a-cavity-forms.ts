@@ -10,8 +10,8 @@ export const howACavityForms: Post = {
   updated: '2026-08-30',
   author: 'Dr. Divya Bharti',
   category: 'Prevention',
-  image: '/images/image_1.webp',
-  imageAlt: 'Close view of a molar tooth during a dental examination',
+  image: '/images/about-2.webp',
+  imageAlt: 'A dentist at the clinic',
   excerpt:
     'Decay is not sugar dissolving your teeth. It is a pH cycle that swings the wrong way a few times too often. Once you can picture that cycle, most dental advice stops sounding arbitrary.',
   related: ['brushing-what-the-evidence-supports', 'tooth-sensitivity-explained'],
